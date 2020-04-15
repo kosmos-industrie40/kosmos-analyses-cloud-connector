@@ -1,0 +1,356 @@
+openapi: 3.0.1
+info:
+  title: KOSMoS Connector Edge Cloud
+  description: This file defines the http endpoint which provides a connector to the analyse cloud. The connector will be used by the edge to push messages to the cloud and receive results of the unit.
+  version: 1.0.0
+  contact:
+    name: Jan Unterbrink
+    email: jan.unterbrink@inovex.de
+servers:
+  - url: '/v1'
+components:
+  schemas:
+    multiple_time_series-result:
+      type: array
+      description: defines multiple time series as result
+      minItems: 1
+      items:
+        $ref: '#/components/schemas/time_series-result'
+    time_series-result:
+      type: object
+      description: definition of time series data result
+      properties:
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: name of this column
+              type:
+                type: string
+                enum: [ number, string ]
+                description: defines the data type on this column (allowed values are number and string)
+              allowed_values:
+                type: array
+                description: defines the values which are allowed in this column
+            required:
+              - name
+              - type
+          minItems: 1
+        data:
+          type: array
+          description: the transmitted data
+          minItems: 0
+          items:
+            type: array
+            minItems: 0
+            items:
+              type: string
+      required:
+        - columns
+        - data
+    analyse-text:
+      type: object
+      required:
+        - total
+      properties:
+        total:
+          type: string
+          description: the end result of the computing unit
+        predict:
+          type: number
+          description: the percentage on which the result are made
+        parts:
+          type: array
+          description: the parts on which the result are made
+          items:
+            required:
+              - machine
+              - result
+            properties:
+              machine:
+                type: string
+                description: the id of the machine on which this calculation is made
+              result:
+                type: string
+                description: the result of this specific machine
+              predict:
+                type: number
+                description: the percentage on which the result is made
+              sensors:
+                type: array
+                description: result made by the sensor
+                items:
+                  properties:
+                    sensor:
+                      type: string
+                      description: the id of the sensor
+                    result:
+                      type: string
+                      description: the result of the computing unit for this sensor
+                    predict:
+                      type: number
+                      description: the percentage on which the result is made
+                  required:
+                    - sensor
+                    - result
+    analyses:
+      type: object
+      properties:
+        from:
+          type: string
+          description: Defines who has created the result
+        date:
+          type: integer
+          description: Defines when the result is created
+        type:
+          type: string
+          enum:
+            - time_series
+            - multiple_time_series
+            - text
+          description: defines the type of this message; the result of a ml computing unit can be a time series, multiple time series or a string (text)
+        calculated:
+          type: object
+          description: Defines on which event the calculation has been begun
+          properties:
+            message:
+              type: integer
+              description: is the message id of the receiving message
+            received:
+              type: integer
+              description: is the timestamp when the message is received by the analysis unit
+        result:
+          description: contains the result, the used type is comparing to the type object in this message
+          oneOf:
+            - $ref: '#/components/schemas/analyse-text'
+            - $ref: '#/components/schemas/time_series-result'
+            - $ref: '#/components/schemas/multiple_time_series-result'
+    data:
+      type: object
+      properties:
+        machine:
+          type: string
+          description: is the machine id of this data point
+        sensor:
+          type: string
+          description: is the sensor id of this data point
+        message_id:
+          type: integer
+          description: is the message id of this mesasge
+        from:
+          type: string
+          description: Defines which uploads this data block
+        columns:
+          type: array
+          minItems: 1
+          items:
+            properties:
+              name:
+                type: string
+                description: defines the name of this column
+              type:
+                type: string
+                description: defines the data typ this property
+              allowed_values:
+                type: string
+                description: defines allowed value for this column
+            required:
+              - name
+              - type
+        data:
+          type: array
+          minItems: 1
+          description: are the data points
+          items:
+            type: array
+            items:
+              type: string
+        meta:
+          type: array
+          minItems: 0
+          items:
+            properties:
+              name:
+                type: string
+                description: is the name of the metadata
+              type:
+                type: string
+                description: set the name type of the metadate
+              description:
+                type: string
+                description: is the description of this metadata
+              value:
+                type: string
+                description: is the value of this metadata
+            required:
+              - name
+              - type
+              - value
+      required:
+        - from
+        - columns
+        - data
+paths:
+  /analyses/{contractId}:
+    get:
+      parameters:
+        - in: path
+          name: contractId
+          schema:
+            type: string
+          required: true
+          description: is the contract id, on which a new result should be queried
+      summary: Returns result of the which should be published on the edge
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/analyses"
+        '204':
+          description: OK - no results are made
+        '404':
+          description: this contract could not be found or you don't have access to this contract id
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+  /machine-data:
+    post:
+      summary: Upload sensor data to analyse cloud
+      responses:
+        '201':
+          description: OK
+        '401':
+          description: Operation is not authorized
+        '400':
+          description: Bad Request
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/data"
+  /auth:
+    post:
+      summary: authentication, to use all other endpoints
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                user:
+                  type: string
+                  description: is the username
+                password:
+                  type: string
+                  description: is the password to this user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                required:
+                  - token
+                properties:
+                  token:
+                    type: string
+                    description: is the authentication token
+        '400':
+          description: failure
+          content:
+            application/json:
+              schema:
+                properties:
+                  issue:
+                    type: string
+                    description: defines what is going wrong
+                    example: Password is wrong
+    get:
+      summary: test authentication
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                required:
+                  - user
+                properties:
+                  user:
+                    type: string
+                    description: is the used user
+        '204':
+          description: OK - you are not logged in
+        '500':
+          description: error
+          content:
+            application/json:
+              schema:
+                properties:
+                  error:
+                    type: string
+                    description: give mor informations about the error
+  /health:
+    description: check if this endpoint is OK or not
+    get:
+      responses:
+        '204':
+          description: OK
+        '500':
+          description: error
+  /model/{contractId}:
+    description: updates on models
+    parameters:
+      - in: path
+        name: contractId
+        schema:
+          type: string
+        description: is the contrct id
+    get:
+      responses:
+        '200':
+          description: OK - new version is available
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    model-url:
+                      type: string
+                      description: is the url to the docker container
+                    tag:
+                      type: string
+                      description: is the deocker tag of the container
+        '500':
+          description: error
+        '204':
+          description: OK - no new version is available
