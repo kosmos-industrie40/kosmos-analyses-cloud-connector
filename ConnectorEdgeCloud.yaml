@@ -10,6 +10,40 @@ servers:
   - url: '/v1'
 components:
   schemas:
+    model:
+      type: object
+      required:
+        - url
+        - tag
+      properties:
+        url:
+          type: string
+          description: is the url, where the docker container can be found
+        tag:
+          type: string
+          description: is the initial or actual tag of the docker container
+    contract:
+      type: object
+      required:
+        - contractId
+        - modelsEdge
+        - modelsCloud
+      properties:
+        contractId:
+          type: string
+          description: is the contract id
+        modelsEdge:
+          description: defines the initial models, which are deployed on the edge
+          type: array
+          minItems: 0
+          items:
+            $ref: '#/components/schemas/model'
+        modelsCloud:
+          description: defines the initial models, which are deployed in the cloud
+          type: array
+          minItems: 0
+          items:
+            $ref: '#/components/schemas/model'
     multiple_time_series-result:
       type: array
       description: defines multiple time series as result
@@ -292,6 +326,30 @@ paths:
                     type: string
                     description: defines what is going wrong
                     example: Password is wrong
+  /auth/{token}:
+    parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+        description: is the token which are created by the authentication backend
+    delete:
+      summary: log out / delete token - user combination
+      responses:
+        '201':
+          description: OK
+        '500':
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
     get:
       summary: test authentication
       responses:
@@ -318,15 +376,14 @@ paths:
                     type: string
                     description: give mor informations about the error
   /health:
-    description: check if this endpoint is OK or not
     get:
+      summary: check if this endpoint is OK or not
       responses:
         '204':
           description: OK
         '500':
           description: error
   /model/{contractId}:
-    description: updates on models
     parameters:
       - in: path
         name: contractId
@@ -334,6 +391,7 @@ paths:
           type: string
         description: is the contrct id
     get:
+      summary: returns a list of models, which should be updated
       responses:
         '200':
           description: OK - new version is available
@@ -349,8 +407,121 @@ paths:
                       description: is the url to the docker container
                     tag:
                       type: string
-                      description: is the deocker tag of the container
+                      description: is the docker tag of the container
         '500':
           description: error
         '204':
           description: OK - no new version is available
+    put:
+      summary: set the version of a deployed model on the edge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                $ref: '#/components/schemas/model'
+      responses:
+        '201':
+          description: OK
+  /contract:
+    get:
+      summary: get a list of all deployed contracts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 0
+                items:
+                  type: string
+                  description: is the id of the contracts which are deployed and active in the analyse cloud
+        '500':
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+        '401':
+          description: not authorized
+    post:
+      summary: add a new contract
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                $ref: '#/components/schemas/contract'
+      responses:
+        '201':
+          description: OK
+        '500':
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+        '401':
+          description: not authorized
+  /contract/{contractID}:
+    parameters:
+      - in: path
+        name: contractID
+        schema:
+          type: string
+        description: is the contract id
+    get:
+      summary: get informations about a single contract
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/contract'
+        '500':
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+        '401':
+          description: not authorized
+    delete:
+      summary: delete a single contract
+      responses:
+        '201':
+          description: OK
+        '500':
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+        '401':
+          description: not authorized
