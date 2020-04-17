@@ -44,6 +44,25 @@ components:
           minItems: 0
           items:
             $ref: '#/components/schemas/model'
+        machines:
+          description: defines the machine id which contains to this contract
+          type: array
+          minItems: 0
+          items:
+            type: object
+            properties:
+              machineId:
+                type: string
+                description: id of the machine
+              sensors:
+                type: array
+                description: defines a sensor
+                items:
+                  type: object
+                  properties:
+                    sensorId:
+                      type: string
+                      description: is the id of the sensor
     multiple_time_series-result:
       type: array
       description: defines multiple time series as result
