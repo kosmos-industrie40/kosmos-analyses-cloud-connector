@@ -10,6 +10,15 @@ servers:
   - url: '/v1'
 components:
   schemas:
+    model_contract:
+      type: object
+      properties:
+        model-url:
+          type: string
+          description: is the url to the docker container
+        tag:
+          type: string
+          description: is the docker tag of the container
     model:
       type: object
       required:
@@ -477,14 +486,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    model-url:
-                      type: string
-                      description: is the url to the docker container
-                    tag:
-                      type: string
-                      description: is the docker tag of the container
+                  $ref: '#/components/schemas/model_contract'
         '500':
           description: error
         '204':
