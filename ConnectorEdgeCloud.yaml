@@ -228,7 +228,54 @@ components:
         - columns
         - data
 paths:
-  /analyses/{contractId}:
+  /analyses/{contractID}:
+    get:
+      parameters:
+        - in: path
+          name: contractId
+          schema:
+            type: string
+          required: true
+          description: is the contract id, on which a new result should be queried
+        - in: query
+          name: machine
+          schema:
+            type: string
+          description: including only specific machines in a the list of the result ids
+        - in: query
+          name: sensor
+          schema:
+            type: string
+          description: including only specific sensor in the list of the result ids
+        - in: query
+          name: start
+          schema:
+            type: integer
+          description: include only result after this specific time (using unix-timestamp to identify)
+        - in: query
+          name: end
+          schema:
+            type: integer
+          description: include only result before this specific time (using unix-timestamp to identify)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    resultId:
+                      type: integer
+                      description: is the uinque id of the result
+                    date:
+                      type: integer
+                      description: defines when the result was made
+                    machine:
+                      type: string
+                      description: is the id of the machine on which the result was made
+  /analyses/{contractId}/{resultId}:
     get:
       parameters:
         - in: path
@@ -251,6 +298,8 @@ paths:
           description: OK - no results are made
         '404':
           description: this contract could not be found or you don't have access to this contract id
+        '401':
+          description: not authorized
         '500':
           description: Server Error
           content:
@@ -269,7 +318,7 @@ paths:
         '201':
           description: OK
         '401':
-          description: Operation is not authorized
+          description: not authorized
         '400':
           description: Bad Request
         '500':
@@ -425,6 +474,8 @@ paths:
       responses:
         '201':
           description: OK
+        '401':
+          description: not authorized
   /contract:
     get:
       summary: get a list of all deployed contracts
