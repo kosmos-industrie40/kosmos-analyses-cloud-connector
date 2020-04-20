@@ -72,6 +72,8 @@ components:
                     sensorId:
                       type: string
                       description: is the id of the sensor
+                    model:
+                      $ref: '#/components/schemas/model'
     multiple_time_series-result:
       type: array
       description: defines multiple time series as result
