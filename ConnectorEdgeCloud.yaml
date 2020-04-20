@@ -259,6 +259,38 @@ components:
         - data
 paths:
   /analyses/{contractID}:
+    summary: central analyses endpoint
+    post:
+      parameters:
+        - in: path
+          name: contractID
+          schema:
+            type: string
+          required: true
+          description: is the contract id, on which a new result shoudl be inserted
+      responses:
+        201:
+          description: OK - result created on the analyses cloud
+        401:
+          description: not authorized
+        500:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                  $ref: "#/components/schemas/analyses"
     get:
       parameters:
         - in: path
