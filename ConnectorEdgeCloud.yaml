@@ -10,15 +10,6 @@ servers:
   - url: '/v1'
 components:
   schemas:
-    model_contract:
-      type: object
-      properties:
-        model-url:
-          type: string
-          description: is the url to the docker container
-        tag:
-          type: string
-          description: is the docker tag of the container
     model:
       type: object
       required:
@@ -114,6 +105,11 @@ components:
             minItems: 0
             items:
               type: string
+        meta:
+          type: array
+          items:
+            type: string
+          description: the possibility to add meta data like units or something else
       required:
         - columns
         - data
@@ -127,7 +123,7 @@ components:
           description: the end result of the computing unit
         predict:
           type: number
-          description: the percentage on which the result are made
+          description: probability of the end result
         parts:
           type: array
           description: the parts on which the result are made
@@ -164,13 +160,19 @@ components:
                     - result
     analyses:
       type: object
+      required:
+        - result
+        - from
+        - date
+        - type
+        - calculated
       properties:
         from:
           type: string
-          description: Defines who has created the result
+          description: defines who has created the result
         date:
           type: integer
-          description: Defines when the result is created
+          description: defines when the result is created
         type:
           type: string
           enum:
@@ -180,16 +182,16 @@ components:
           description: defines the type of this message; the result of a ml computing unit can be a time series, multiple time series or a string (text)
         calculated:
           type: object
-          description: Defines on which event the calculation has been begun
+          description: defines on which event the calculation has been begun
           properties:
             message:
               type: integer
-              description: is the message id of the receiving message
+              description: is the message id of the received message, which started the computing process
             received:
               type: integer
               description: is the timestamp when the message is received by the analysis unit
         result:
-          description: contains the result, the used type is comparing to the type object in this message
+          description: contains the result, the used type compares to the type object in this message
           oneOf:
             - $ref: '#/components/schemas/analyse-text'
             - $ref: '#/components/schemas/time_series-result'
@@ -199,16 +201,16 @@ components:
       properties:
         machine:
           type: string
-          description: is the machine id of this data point
+          description: is the machine id on which this message is created
         sensor:
           type: string
-          description: is the sensor id of this data point
+          description: is the sensor id, which has measured this data point
         message_id:
           type: integer
-          description: is the message id of this mesasge
+          description: is the message id of this message
         from:
           type: string
-          description: Defines which uploads this data block
+          description: defines which uploads this data block
         columns:
           type: array
           minItems: 1
@@ -219,7 +221,7 @@ components:
                 description: defines the name of this column
               type:
                 type: string
-                description: defines the data typ this property
+                description: defines the data type this property
               allowed_values:
                 type: string
                 description: defines allowed value for this column
@@ -269,7 +271,7 @@ paths:
           schema:
             type: string
           required: true
-          description: is the contract id, on which a new result shoudl be inserted
+          description: is the contract id, on which a new result should be inserted
       responses:
         201:
           description: OK - result created on the analyses cloud
@@ -305,7 +307,7 @@ paths:
           name: machine
           schema:
             type: string
-          description: including only specific machines in a the list of the result ids
+          description: including only specific machines in a list of the result ids
         - in: query
           name: sensor
           schema:
@@ -345,7 +347,7 @@ paths:
                   properties:
                     resultId:
                       type: integer
-                      description: is the uinque id of the result
+                      description: is the unique id of the result
                     date:
                       type: integer
                       description: defines when the result was made
@@ -432,7 +434,7 @@ paths:
               properties:
                 user:
                   type: string
-                  description: is the username
+                  description: is the user name
                 password:
                   type: string
                   description: is the password to this user
@@ -518,7 +520,7 @@ paths:
                 properties:
                   error:
                     type: string
-                    description: give mor informations about the error
+                    description: give more informations about the error
   /health:
     get:
       summary: check if this endpoint is OK or not
@@ -534,7 +536,7 @@ paths:
         required: true
         schema:
           type: string
-        description: is the contrct id
+        description: is the contract id
     get:
       summary: returns a list of models, which should be updated
       responses:
@@ -545,7 +547,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/model_contract'
+                  $ref: '#/components/schemas/model'
         500:
           description: error
         401:
