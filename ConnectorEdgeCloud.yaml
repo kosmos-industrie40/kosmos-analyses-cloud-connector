@@ -322,7 +322,20 @@ paths:
             type: integer
           description: include only result before this specific time (using unix-timestamp to identify)
       responses:
-        '200':
+        401:
+          description: not authorized
+        500:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+        200:
           description: OK
           content:
             application/json:
@@ -424,7 +437,7 @@ paths:
                   type: string
                   description: is the password to this user
       responses:
-        '200':
+        200:
           description: OK
           content:
             application/json:
@@ -435,7 +448,7 @@ paths:
                   token:
                     type: string
                     description: is the authentication token
-        '400':
+        400:
           description: failure
           content:
             application/json:
@@ -445,6 +458,18 @@ paths:
                     type: string
                     description: defines what is going wrong
                     example: Password is wrong
+        500:
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+          
   /auth/{token}:
     parameters:
       - in: path
@@ -456,9 +481,9 @@ paths:
     delete:
       summary: log out / delete token - user combination
       responses:
-        '201':
+        201:
           description: OK
-        '500':
+        500:
           description: error
           content:
             application/json:
@@ -472,7 +497,7 @@ paths:
     get:
       summary: test authentication
       responses:
-        '200':
+        200:
           description: OK
           content:
             application/json:
@@ -483,9 +508,9 @@ paths:
                   user:
                     type: string
                     description: is the used user
-        '204':
+        204:
           description: OK - you are not logged in
-        '500':
+        500:
           description: error
           content:
             application/json:
@@ -498,9 +523,9 @@ paths:
     get:
       summary: check if this endpoint is OK or not
       responses:
-        '204':
+        204:
           description: OK
-        '500':
+        500:
           description: error
   /model/{contractId}:
     parameters:
@@ -513,7 +538,7 @@ paths:
     get:
       summary: returns a list of models, which should be updated
       responses:
-        '200':
+        200:
           description: OK - new version is available
           content:
             application/json:
@@ -521,9 +546,11 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/model_contract'
-        '500':
+        500:
           description: error
-        '204':
+        401:
+          description: not authorized
+        204:
           description: OK - no new version is available
     put:
       summary: set the version of a deployed model on the edge
@@ -536,15 +563,15 @@ paths:
               items:
                 $ref: '#/components/schemas/model'
       responses:
-        '201':
+        201:
           description: OK
-        '401':
+        401:
           description: not authorized
   /contract:
     get:
       summary: get a list of all deployed contracts
       responses:
-        '200':
+        200:
           description: OK
           content:
             application/json:
@@ -554,7 +581,7 @@ paths:
                 items:
                   type: string
                   description: is the id of the contracts which are deployed and active in the analyse cloud
-        '500':
+        500:
           description: error
           content:
             application/json:
@@ -565,7 +592,7 @@ paths:
                   error:
                     type: string
                     description: more informations about this error
-        '401':
+        401:
           description: not authorized
     post:
       summary: add a new contract
@@ -578,9 +605,9 @@ paths:
               items:
                 $ref: '#/components/schemas/contract'
       responses:
-        '201':
+        201:
           description: OK
-        '500':
+        500:
           description: error
           content:
             application/json:
@@ -591,7 +618,7 @@ paths:
                   error:
                     type: string
                     description: more informations about this error
-        '401':
+        401:
           description: not authorized
   /contract/{contractID}:
     parameters:
@@ -604,13 +631,13 @@ paths:
     get:
       summary: get informations about a single contract
       responses:
-        '200':
+        200:
           description: OK
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/contract'
-        '500':
+        500:
           description: error
           content:
             application/json:
@@ -621,14 +648,14 @@ paths:
                   error:
                     type: string
                     description: more informations about this error
-        '401':
+        401:
           description: not authorized
     delete:
       summary: delete a single contract
       responses:
-        '201':
+        201:
           description: OK
-        '500':
+        500:
           description: error
           content:
             application/json:
@@ -639,5 +666,5 @@ paths:
                   error:
                     type: string
                     description: more informations about this error
-        '401':
+        401:
           description: not authorized
