@@ -40,7 +40,7 @@ func main() {
 	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/analyses/", new(endpoints.Analyses))
 	http.Handle("/machine-data/", new(endpoints.MachineData))
-	http.Handle("/auth/", new(endpoints.Auth))
+	http.Handle("/auth", new(endpoints.Auth))
 	http.Handle("/health", new(endpoints.Health))
 	http.Handle("/model/", new(endpoints.Model))
 	http.Handle("/contract/", new(endpoints.Ready))
