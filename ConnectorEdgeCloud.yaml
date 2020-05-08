@@ -692,3 +692,18 @@ paths:
                     description: more informations about this error
         401:
           description: not authorized
+  /ready:
+    get:
+        summary: test if the endpoint is ready or not
+        responses:
+          201:
+            description: OK
+          500:
+            description: not ready
+
+  /metrics:
+    get:
+        summary: endpoint to provide prometheus metrics
+        responses:
+          200:
+            description: prometheus metrics
