@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/config"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/endpoints"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
 )
 
@@ -26,6 +27,7 @@ func init() {
 func main() {
 	flag.Parse()
 
+	// config variables
 	var pas models.Password
 	var conf models.Configurations
 
@@ -34,7 +36,14 @@ func main() {
 
 	klog.Infof("configuration is parsed")
 
+	// paths
 	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/analyses/", new(endpoints.Analyses))
+	http.Handle("/machine-data/", new(endpoints.MachineData))
+	http.Handle("/auth/", new(endpoints.Auth))
+	http.Handle("/health", new(endpoints.Health))
+	http.Handle("/model/", new(endpoints.Model))
+	http.Handle("/contract/", new(endpoints.Ready))
 
 	klog.Infof("start webserver")
 	listen := fmt.Sprintf("%s:%d", conf.Webserver.Address, conf.Webserver.Port)
