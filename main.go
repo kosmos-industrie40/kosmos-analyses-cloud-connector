@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/config"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/endpoints"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
 )
@@ -31,21 +32,35 @@ func main() {
 	var pas models.Password
 	var conf models.Configurations
 
-	config.ParseConfiguration(cli.configuration, &conf)
-	config.ParseConfiguration(cli.password, &pas)
+	if err := config.ParseConfiguration(cli.configuration, &conf); err != nil {
+		panic(err)
+	}
+	if err := config.ParseConfiguration(cli.password, &pas); err != nil {
+		panic(err)
+	}
 
 	klog.Infof("configuration is parsed")
+
+	klog.Infof("connect to database")
+	var db database.Postgres
+	if err := db.Connect(conf.Database.Address, pas.Database.User, pas.Database.Password, conf.Database.Database, conf.Database.Port); err != nil {
+		panic(err)
+	}
+
+	klog.Infof("start server")
+	var auth http.Handler
+	auth = endpoints.Auth{Db: db}
 
 	// paths
 	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/analyses/", new(endpoints.Analyses))
 	http.Handle("/machine-data/", new(endpoints.MachineData))
-	http.Handle("/auth", new(endpoints.Auth))
+	http.Handle("/auth", auth)
 	http.Handle("/health", new(endpoints.Health))
 	http.Handle("/model/", new(endpoints.Model))
 	http.Handle("/contract/", new(endpoints.Ready))
 
 	klog.Infof("start webserver")
 	listen := fmt.Sprintf("%s:%d", conf.Webserver.Address, conf.Webserver.Port)
-	http.ListenAndServe(listen, nil)
+	_ = http.ListenAndServe(listen, nil)
 }
