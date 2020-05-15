@@ -34,9 +34,9 @@ func (p *Postgres) Insert(table string, columns []string, val []interface{}) err
 
 	for i := range columns {
 		if valuesPlaceholder == "" {
-			valuesPlaceholder = fmt.Sprintf("$%d", i + 1)
+			valuesPlaceholder = fmt.Sprintf("$%d", i+1)
 		} else {
-			valuesPlaceholder += fmt.Sprintf(", $%d", i + 1)
+			valuesPlaceholder += fmt.Sprintf(", $%d", i+1)
 		}
 	}
 
@@ -60,9 +60,9 @@ func (p *Postgres) Query(table string, columns []string, parameters []string, va
 
 	for i, v := range parameters {
 		if parameter == "" {
-			parameter = fmt.Sprintf("%v = $%d", v, i + 1)
+			parameter = fmt.Sprintf("%v = $%d", v, i+1)
 		} else {
-			parameter += fmt.Sprintf("AND %v = $%d", v, i + 1)
+			parameter += fmt.Sprintf("AND %v = $%d", v, i+1)
 		}
 	}
 
@@ -123,6 +123,17 @@ func (p *Postgres) Query(table string, columns []string, parameters []string, va
 			var cache bool
 			quResult.Scan(&cache)
 			*values[valueCounter] = cache
+		case []int:
+			var cache int
+			quResult.Scan(&cache)
+			*values[valueCounter] = append(value.([]int), cache)
+		case []string:
+			var cache string
+			quResult.Scan(&cache)
+			*values[valueCounter] = append(value.([]string), cache)
+		default:
+			klog.Errorf("unexpected type")
+			return fmt.Errorf("unexpected type, used in interface")
 		}
 		valueCounter++
 	}
@@ -130,7 +141,49 @@ func (p *Postgres) Query(table string, columns []string, parameters []string, va
 	return err
 }
 
-func (p *Postgres) Delete(table string, paramters []string, paramValues []interface{}) error{
+func (p *Postgres) Update(table string, parameter []string, paramValues []interface{}, updateParameter []string, updateValues []interface{}) error {
+	var clause, update string
+
+	if len(parameter) != len(paramValues) {
+		return fmt.Errorf("parameter and paramValues haven't the same length")
+	}
+
+	if len(updateParameter) != len(updateValues) {
+		return fmt.Errorf("updateParameter and updateValues haven't the same length")
+	}
+
+	for i, v := range parameter {
+		if clause == "" {
+			clause = fmt.Sprintf("%s = $%d", v, len(updateParameter)+i+1)
+		} else {
+			clause += fmt.Sprintf("AND %s = $%d", v, len(updateParameter)+i+1)
+		}
+	}
+
+	for i, v := range updateValues {
+		if update == "" {
+			update = fmt.Sprintf("%s = $%d", v, i+1)
+		} else {
+			update += fmt.Sprintf(", %s = $%d", v, i+1)
+		}
+	}
+
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, update, clause)
+
+	var params []interface{}
+	for i := 0; i < len(updateParameter); i++ {
+		params = append(params, updateParameter[i])
+	}
+	for i := 0; i < len(paramValues); i++ {
+		params = append(params, paramValues[i])
+	}
+
+	_, err := p.db.Exec(query, params...)
+
+	return err
+}
+
+func (p *Postgres) Delete(table string, paramters []string, paramValues []interface{}) error {
 	var clause, query string
 	if len(paramters) != len(paramValues) {
 		return fmt.Errorf("len of paramters is not equal to len of paramValues")
@@ -138,9 +191,9 @@ func (p *Postgres) Delete(table string, paramters []string, paramValues []interf
 
 	for i, v := range paramters {
 		if clause == "" {
-			clause = fmt.Sprintf("%s = $%d", v, i + 1)
+			clause = fmt.Sprintf("%s = $%d", v, i+1)
 		} else {
-			clause += fmt.Sprintf("AND %s = $%d", v, i + 1)
+			clause += fmt.Sprintf("AND %s = $%d", v, i+1)
 		}
 	}
 
