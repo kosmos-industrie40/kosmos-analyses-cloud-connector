@@ -47,9 +47,12 @@ func main() {
 		panic(err)
 	}
 
-	klog.Infof("start server")
+	klog.Infof("define server")
 	var auth http.Handler
 	auth = endpoints.Auth{Db: db}
+
+	var contract http.Handler
+	contract = endpoints.Contract{Db: db}
 
 	// paths
 	http.Handle("/metrics", promhttp.Handler())
@@ -58,7 +61,8 @@ func main() {
 	http.Handle("/auth", auth)
 	http.Handle("/health", new(endpoints.Health))
 	http.Handle("/model/", new(endpoints.Model))
-	http.Handle("/contract/", new(endpoints.Ready))
+	http.Handle("/ready", new(endpoints.Ready))
+	http.Handle("/contract/", contract)
 
 	klog.Infof("start webserver")
 	listen := fmt.Sprintf("%s:%d", conf.Webserver.Address, conf.Webserver.Port)
