@@ -62,7 +62,7 @@ func (p *Postgres) Query(table string, columns []string, parameters []string, va
 		if parameter == "" {
 			parameter = fmt.Sprintf("%v = $%d", v, i+1)
 		} else {
-			parameter += fmt.Sprintf("AND %v = $%d", v, i+1)
+			parameter += fmt.Sprintf(" AND %v = $%d", v, i+1)
 		}
 	}
 
@@ -84,68 +84,84 @@ func (p *Postgres) Query(table string, columns []string, parameters []string, va
 		}
 	}()
 
-	valueCounter := 0
-	for quResult.Next() {
-		value := *values[valueCounter]
-		if valueCounter == len(values) {
-			return fmt.Errorf("to many columns in db return")
-		}
-		switch value.(type) {
-		case int:
-			var cache int
-			quResult.Scan(&cache)
-			*values[valueCounter] = cache
-		case int64:
-			var cache int64
-			quResult.Scan(&cache)
-			*values[valueCounter] = cache
-		case string:
-			var cache string
-			quResult.Scan(&cache)
-			*values[valueCounter] = cache
-		case float32:
-			var cache float32
-			quResult.Scan(&cache)
-			*values[valueCounter] = cache
-		case float64:
-			var cache float64
-			quResult.Scan(&cache)
-			*values[valueCounter] = cache
-		case byte:
-			var cache byte
-			quResult.Scan(&cache)
-			*values[valueCounter] = cache
-		case []byte:
-			var cache []byte
-			quResult.Scan(&cache)
-			*values[valueCounter] = cache
-		case bool:
-			var cache bool
-			quResult.Scan(&cache)
-			*values[valueCounter] = cache
-		case []int:
-			var cache int
-			quResult.Scan(&cache)
-			*values[valueCounter] = append(value.([]int), cache)
-		case []string:
-			var cache string
-			quResult.Scan(&cache)
-			*values[valueCounter] = append(value.([]string), cache)
+	var qValue []interface{}
+	mulValue := false
+	var scanString []string
+	var scanInt []int64
+	klog.Infof("len of values: %d\n", len(values))
+	for i := 0; i < len(values); i++ {
+		val := *values[i]
+		switch val.(type) {
 		default:
-			klog.Errorf("unexpected type")
-			return fmt.Errorf("unexpected type, used in interface")
+			if mulValue {
+				return fmt.Errorf("using different types with multivalue and single value")
+			}
+			qValue = append(qValue, values[i])
+		case []string:
+			mulValue = true
+			if len(qValue) > 0 && !mulValue {
+				return fmt.Errorf("using different types with multivalue and single value")
+			}
+			scanString = append(scanString, "")
+			qValue = append(qValue, &scanString[len(scanString)-1])
+		case []int64:
+			mulValue = true
+			if len(qValue) > 0 && !mulValue {
+				return fmt.Errorf("using different types with multivalue and single value")
+			}
+			scanInt = append(scanInt, int64(-1))
+			klog.Infof("current length of scanInt: %d\n", len(scanInt))
+			klog.Infof("address of scanInt: %v\n", &scanInt[len(scanInt)-1])
+			qValue = append(qValue, &scanInt[len(scanInt)-1])
 		}
-		valueCounter++
+
 	}
 
-	return err
+	if mulValue {
+		numString := 0
+		numInt := 0
+		for quResult.Next() {
+			if err := quResult.Scan(qValue...); err != nil {
+				return err
+			}
+			for i := 0; i < len(qValue); i++ {
+				val := *values[i]
+				switch val.(type) {
+				case []string:
+					dat := append(val.([]string), scanString[numString])
+					*values[i] = dat
+					numString++
+				case []int64:
+					klog.Infof("address from scanInt is: %s\n", &scanInt[numInt])
+					klog.Infof("value from scanInt is: %d\n", scanInt[numInt])
+					klog.Infof("data %v\n", val.([]int64))
+					dat := append(val.([]int64), scanInt[numInt])
+					*values[i] = dat
+					numInt++
+				}
+			}
+			numString = 0
+			numInt = 0
+		}
+	} else {
+		if !quResult.Next() {
+			return nil
+		}
+		if err := quResult.Scan(qValue...); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 func (p *Postgres) Update(table string, parameter []string, paramValues []interface{}, updateParameter []string, updateValues []interface{}) error {
-	var clause, update string
+	var spec, update string
+	var params []interface{}
 
 	if len(parameter) != len(paramValues) {
-		return fmt.Errorf("parameter and paramValues haven't the same length")
+		return fmt.Errorf("parameter and paramValue haven't the same length")
 	}
 
 	if len(updateParameter) != len(updateValues) {
@@ -153,14 +169,14 @@ func (p *Postgres) Update(table string, parameter []string, paramValues []interf
 	}
 
 	for i, v := range parameter {
-		if clause == "" {
-			clause = fmt.Sprintf("%s = $%d", v, len(updateParameter)+i+1)
+		if spec == "" {
+			spec = fmt.Sprintf("%s = $%d", v, i+1+len(updateValues))
 		} else {
-			clause += fmt.Sprintf("AND %s = $%d", v, len(updateParameter)+i+1)
+			spec += fmt.Sprintf(", %s = $%d", v, i+1+len(updateValues))
 		}
 	}
 
-	for i, v := range updateValues {
+	for i, v := range updateParameter {
 		if update == "" {
 			update = fmt.Sprintf("%s = $%d", v, i+1)
 		} else {
@@ -168,17 +184,29 @@ func (p *Postgres) Update(table string, parameter []string, paramValues []interf
 		}
 	}
 
-	query := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, update, clause)
-
-	var params []interface{}
-	for i := 0; i < len(updateParameter); i++ {
-		params = append(params, updateParameter[i])
+	for _, v := range updateValues {
+		switch v.(type) {
+		default:
+			return fmt.Errorf("unextepced type in updateValues")
+		case bool:
+			params = append(params, v.(bool))
+		}
 	}
-	for i := 0; i < len(paramValues); i++ {
-		params = append(params, paramValues[i])
+
+	for _, v := range paramValues {
+		switch v.(type) {
+		default:
+			return fmt.Errorf("unextepced type in updateValues")
+		case string:
+			params = append(params, v.(string))
+		}
 	}
 
-	_, err := p.db.Exec(query, params...)
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, update, spec)
+	klog.Infof("database query: %s\n", query)
+	klog.Infof("params: %v %s\n", params...)
+
+	_, err := p.db.Exec(query, true, "asf")
 
 	return err
 }
@@ -193,7 +221,7 @@ func (p *Postgres) Delete(table string, paramters []string, paramValues []interf
 		if clause == "" {
 			clause = fmt.Sprintf("%s = $%d", v, i+1)
 		} else {
-			clause += fmt.Sprintf("AND %s = $%d", v, i+1)
+			clause += fmt.Sprintf(" AND %s = $%d", v, i+1)
 		}
 	}
 
