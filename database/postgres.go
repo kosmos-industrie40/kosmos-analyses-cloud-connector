@@ -204,9 +204,8 @@ func (p *Postgres) Update(table string, parameter []string, paramValues []interf
 
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, update, spec)
 	klog.Infof("database query: %s\n", query)
-	klog.Infof("params: %v %s\n", params...)
 
-	_, err := p.db.Exec(query, true, "asf")
+	_, err := p.db.Exec(query, params...)
 
 	return err
 }
