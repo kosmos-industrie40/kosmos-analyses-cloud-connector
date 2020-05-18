@@ -13,17 +13,22 @@ import (
 	"k8s.io/klog"
 )
 
-type Contract struct{
+type Contract struct {
 	Db database.Postgres
 }
 
 func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("token")
 
+	if token == "" {
+		w.WriteHeader(401)
+		return
+	}
+
 	user, err := logic.User(token, c.Db)
 	if err != nil {
 		w.WriteHeader(500)
-		klog.Errorf("could not test if user is authenticated")
+		klog.Errorf("could not test if user is authenticated: %s", err)
 		return
 	}
 
@@ -45,6 +50,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(500)
 				return
 			}
+
 			res, err := json.Marshal(contracts)
 			if err != nil {
 				klog.Errorf("could not marshal data: %v\n", err)
@@ -57,7 +63,6 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				klog.Errorf("could not send message %v\n", err)
 				return
 			}
-			w.WriteHeader(200)
 		case 3:
 			if splitted[2] == "" {
 				contracts, err := logic.GetAllContracts(c.Db)
@@ -66,6 +71,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(500)
 					return
 				}
+
 				res, err := json.Marshal(contracts)
 				if err != nil {
 					klog.Errorf("could not marshal data: %v\n", err)
@@ -108,6 +114,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(400)
 		}
 		if err := logic.DeleteContract(splitted[2], c.Db); err != nil {
+			klog.Errorf("could not update contract: %s", err)
 			w.WriteHeader(500)
 			return
 		}
@@ -126,6 +133,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err = json.Unmarshal(body, &contract)
 		if err != nil {
 			klog.Errorf("could not parse query parameter: %s", err)
+			klog.Infof("%s", body)
 			w.WriteHeader(400)
 			return
 		}
