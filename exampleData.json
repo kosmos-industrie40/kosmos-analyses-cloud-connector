@@ -1,0 +1,31 @@
+[
+	{
+		"machine": "mach",
+		"sensor": "abc",
+		"message_id": 55,
+		"from": "jan",
+		"columns": [
+			{
+				"name": "temperature",
+				"type": "integer"
+			},
+			{
+				"name": "date",
+				"type": "integer"
+			}
+		],
+		"data": [
+			[
+				"50",
+				"50.5",
+				"51"
+			],
+			[
+				"1589963246",
+				"1589963247",
+				"1589963248"
+			]
+		],
+		"meta": []
+	}
+]
