@@ -49,7 +49,8 @@ func main() {
 	}
 
 	klog.Infof("connect to database")
-	var mqttCon mqtt.Mqtt
+	var mqttCo mqtt.Mqtt
+	mqttCon := &mqttCo
 	sendChan := make(chan mqtt.Msg, 100)
 	er := make(chan error)
 	if err := mqttCon.Init(pas.Mqtt.User, pas.Mqtt.Password, conf.Mqtt.Address, conf.Mqtt.Port, false, sendChan, er); err != nil {

@@ -1,32 +1,32 @@
 package models
 
 type Data struct {
-	Machine   string        `json:"machine:noempty"`
-	Sensor    string        `json:"string:noempty"`
-	MessageId int           `json:"message_id:noempty"`
+	Machine   string        `json:"machine,omitempty"`
+	Sensor    string        `json:"string,omitempty"`
+	MessageId int           `json:"message_id,omitempty"`
 	From      string        `json:"from"`
 	Columns   []DataColumnn `json:"columns"`
 	Data      [][]string    `json:"data"`
 	Meta      []DataMeta    `json:"meta"`
-	Signature string        `json:"signature:noempty"`
+	Signature string        `json:"signature,omitempty"`
 }
 
 type DataColumnn struct {
 	Name          string `json:"name"`
 	Type          string `json:"type"`
-	AllowedValues string `json:"allowed_values:noempty"`
+	AllowedValues string `json:"allowed_values,omitempty"`
 }
 
 type DataMeta struct {
 	Name        string `json:"name"`
 	Type        string `json:"type"`
-	Description string `json:"description:noempty"`
-	Value       string `json:"value:noempty"`
+	Description string `json:"description,omitempty"`
+	Value       string `json:"value,omitempty"`
 }
 
 type SendData struct {
-	Machine string        `json:"machine:noempty"`
-	Sensor  string        `json:"string:noempty"`
+	Machine string        `json:"machine,omitempty"`
+	Sensor  string        `json:"string,omitempty"`
 	From    string        `json:"from"`
 	Columns []DataColumnn `json:"columns"`
 	Data    [][]string    `json:"data"`

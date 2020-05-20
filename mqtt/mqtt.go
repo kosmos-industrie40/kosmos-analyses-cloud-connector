@@ -19,9 +19,10 @@ type Msg struct {
 	Msg   []byte
 }
 
-func (m Mqtt) Init(username, password, host string, port int, tls bool, sendChan <-chan Msg, err chan<- error) error {
+func (m *Mqtt) Init(username, password, host string, port int, tls bool, sendChan <-chan Msg, err chan<- error) error {
+	mq := *m
 	rand.Seed(time.Now().UnixNano())
-	m.clientID = fmt.Sprintf("connector-%d", rand.Int31())
+	mq.clientID = fmt.Sprintf("connector-%d", rand.Int31())
 	er := m.connect(host, m.clientID, username, password, port, tls)
 	if er != nil {
 		return er
@@ -30,7 +31,7 @@ func (m Mqtt) Init(username, password, host string, port int, tls bool, sendChan
 	return nil
 }
 
-func (m Mqtt) send(sendChan <-chan Msg, err chan<- error) {
+func (m *Mqtt) send(sendChan <-chan Msg, err chan<- error) {
 	for {
 		msg := <-sendChan
 
@@ -42,7 +43,7 @@ func (m Mqtt) send(sendChan <-chan Msg, err chan<- error) {
 	}
 }
 
-func (m Mqtt) connect(host, deviceId, user, password string, port int, tlsVerify bool) error {
+func (m *Mqtt) connect(host, deviceId, user, password string, port int, tlsVerify bool) error {
 
 	clientOpts := MQTT.NewClientOptions().AddBroker(fmt.Sprintf("tcp://%s:%d", host, port)).SetClientID(deviceId).SetCleanSession(true)
 
