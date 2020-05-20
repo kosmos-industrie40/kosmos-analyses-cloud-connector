@@ -6,6 +6,7 @@ In this file, you can find a description, how to test different endpoints.
 
 1. [Auth](#auth)
 1. [Contracts](#contract)
+1. [Upload Sensor Data](#upload_sensor_data)
 
 ## Auth
 In this chapter a simple test case against the auth endpoint can be found. In three steps we will try to logged in, test if we are already logged in and log out.
@@ -55,3 +56,8 @@ where `contractId` is the specific contract.
 ```
 where `insert auth token here` is the authentication token from the login.
 where `contractId` is the specific contract.
+
+## Upload Sensor Data
+You have to log in before you can upload your data. To do this, you can use the described way in [Auth/Log in](#auth_log_in).
+
+You can find an example of sensor data, which can be uploaded in the `exampleData.json` file.
