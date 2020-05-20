@@ -8,6 +8,7 @@ type Data struct {
 	Columns   []DataColumnn `json:"columns"`
 	Data      [][]string    `json:"data"`
 	Meta      []DataMeta    `json:"meta"`
+	Signature string        `json:"signature:noempty"`
 }
 
 type DataColumnn struct {

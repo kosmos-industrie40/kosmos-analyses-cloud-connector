@@ -199,6 +199,9 @@ components:
     data:
       type: object
       properties:
+        signature:
+          type: string
+          description: is the signature above this message
         machine:
           type: string
           description: is the machine id on which this message is created
