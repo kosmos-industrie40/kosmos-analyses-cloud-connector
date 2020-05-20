@@ -12,6 +12,7 @@ import (
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/endpoints"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/mqtt"
 )
 
 var cli struct {
@@ -47,6 +48,21 @@ func main() {
 		panic(err)
 	}
 
+	klog.Infof("connect to database")
+	var mqttCon mqtt.Mqtt
+	sendChan := make(chan mqtt.Msg, 100)
+	er := make(chan error)
+	if err := mqttCon.Init(pas.Mqtt.User, pas.Mqtt.Password, conf.Mqtt.Address, conf.Mqtt.Port, false, sendChan, er); err != nil {
+		panic(err)
+	}
+
+	go func() {
+		for {
+			e := <-er
+			klog.Errorf("%v", e)
+		}
+	}()
+
 	klog.Infof("define server")
 	var auth http.Handler
 	auth = endpoints.Auth{Db: db}
@@ -54,10 +70,13 @@ func main() {
 	var contract http.Handler
 	contract = endpoints.Contract{Db: db}
 
+	var machineData http.Handler
+	machineData = endpoints.MachineData{SendChan: sendChan, Db: db}
+
 	// paths
 	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/analyses/", new(endpoints.Analyses))
-	http.Handle("/machine-data/", new(endpoints.MachineData))
+	http.Handle("/machine-data/", machineData)
 	http.Handle("/auth", auth)
 	http.Handle("/health", new(endpoints.Health))
 	http.Handle("/model/", new(endpoints.Model))
