@@ -52,8 +52,10 @@ where `insert auth token here` is the authentication token from the login.
 where `contractId` is the specific contract.
 
 ### Delete Contract
-```curl -X DELETE --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' -i localhost:8080/contract/<contractId>
 ```
+curl -X DELETE --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' -i localhost:8080/contract/<contractId>
+```
+
 where `insert auth token here` is the authentication token from the login.
 where `contractId` is the specific contract.
 
@@ -61,3 +63,10 @@ where `contractId` is the specific contract.
 You have to log in before you can upload your data. To do this, you can use the described way in [Auth/Log in](#auth_log_in).
 
 You can find an example of sensor data, which can be uploaded in the `exampleData.json` file.
+To view the data output you have to start a mqtt subscriber. You can use `mosquitto_sub` from
+from the mosquitto-clients package. To start this, you can use this command `mosquitto_sub -t 'kosmos/machine-data/#'`
+
+To upload data you can use the following exmple request.
+```bash
+ curl -i -X POST --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/machine-data/ --data @exampleData.json
+```
