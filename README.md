@@ -30,6 +30,17 @@ or install Mosquitto check out [Download Mosquitto page](https://mosquitto.org/d
 You can build this programm by executing `make` or `go build ./...`. To test the functionality 
 check out the [test.md file](test.md).
 
+Before you can execute this program you should create the database layout.
+You can use the file `createDatebase.sql` to create the required Tables.
+
+In the development I had to make a few changes on the database. To reuse a defined query
+I inserted a token by hand. The following query shows an simple examle to insert
+those statements.
+```bash
+psql -h localhost -d connector -U kosmos -c "INSERT INTO token (name, token) VALUES ('testUser', 'ca397616-e351-47c3-ae7b-0785e6278357');"
+```
+This will use the username `testUser` and the token `ca397616-e351-47c3-ae7b-0785e6278357`.
+
 ## Configuration
 To configure the web application there are two importend cli-flags and two configuration files.
 We are using two files to sepearte the user/password from the other configuration.
