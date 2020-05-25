@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"encoding/json"
@@ -115,5 +116,19 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	case "POST":
+		ur := strings.Split(r.URL.Path, "/")
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			klog.Errorf("could not read data from request body; err : %v\n")
+			w.WriteHeader(400)
+			return
+		}
+		if err := logic.InsertResult(ur[2], ur[3], ur[4], body, a.Db); err != nil {
+			klog.Errorf("could not insert data: %s\n", err)
+			w.WriteHeader(500)
+			return
+		}
+		w.WriteHeader(201)
+		return
 	}
 }
