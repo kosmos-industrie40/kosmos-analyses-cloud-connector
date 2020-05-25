@@ -265,10 +265,22 @@ components:
         - columns
         - data
 paths:
-  /analyses/{contractID}:
+  /analyses/{contractID}/{machineID}/{sensorID}:
     summary: central analyses endpoint
     post:
       parameters:
+        - in: path
+          name: machineID
+          schema:
+            type: string
+          required: true
+          description: is the machine id, on which a new result should be inserted
+        - in: path
+          name: sensorID
+          schema:
+            type: string
+          required: true
+          description: is the sensor id, on which a new result should be inserted
         - in: path
           name: contractID
           schema:
@@ -304,6 +316,8 @@ paths:
               type: array
               items:
                   $ref: "#/components/schemas/analyses"
+  /analyses/{contractID}:
+    summary: central analyses endpoint
     get:
       parameters:
         - in: header
