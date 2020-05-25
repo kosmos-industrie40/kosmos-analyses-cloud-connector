@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 
 	_ "github.com/lib/pq"
 	"k8s.io/klog"
@@ -45,6 +46,140 @@ func (p *Postgres) Insert(table string, columns []string, val []interface{}) err
 	_, err := p.db.Exec(query, val...)
 
 	return err
+}
+
+func (p *Postgres) QueryTime(table string, columns []string, parameters []string, timeColumn string, start, end time.Time, values []*interface{}, parameterValue []interface{}) error {
+	var parameter string
+
+	if len(parameters) != len(parameterValue) {
+		return fmt.Errorf("length of parameter and parameterValue are not equal; count parameters: %d and values: %d", len(parameter), len(parameterValue))
+	}
+
+	if len(columns) != len(values) {
+		return fmt.Errorf("lenght of columns and return values are not equal")
+	}
+
+	var numberParameter int = 1
+	for i, v := range parameters {
+		if parameter == "" {
+			parameter = fmt.Sprintf("%v = $%d", v, i+1)
+		} else {
+			parameter += fmt.Sprintf(" AND %v = $%d", v, i+1)
+		}
+		numberParameter++
+	}
+
+	if start.Equal(time.Time{}) {
+		parameter = fmt.Sprintf("time > $%d", numberParameter)
+		parameterValue = append(parameterValue, start)
+		numberParameter++
+	}
+
+	if end.Equal(time.Time{}) {
+		parameter = fmt.Sprintf("time < $%d", numberParameter)
+		parameterValue = append(parameterValue, start)
+		numberParameter++
+	}
+
+
+	var query string
+	if len(parameters) == 0 {
+		query = fmt.Sprintf("SELECT %s FROM %s", strings.Join(columns, ", "), table)
+	} else {
+		query = fmt.Sprintf("SELECT %s FROM %s WHERE %s", strings.Join(columns, ", "), table, parameter)
+	}
+
+	klog.Infof("Database query: %s", query)
+	quResult, err := p.db.Query(query, parameterValue...)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := quResult.Close(); err != nil {
+			klog.Errorf("could not close database query object")
+		}
+	}()
+
+	var qValue []interface{}
+	mulValue := false
+	var scanString []string
+	var scanInt []int64
+	var scanTime []time.Time
+	klog.Infof("len of values: %d\n", len(values))
+	for i := 0; i < len(values); i++ {
+		val := *values[i]
+		switch val.(type) {
+		default:
+			if mulValue {
+				return fmt.Errorf("using different types with multivalue and single value")
+			}
+			qValue = append(qValue, values[i])
+		case []string:
+			mulValue = true
+			if len(qValue) > 0 && !mulValue {
+				return fmt.Errorf("using different types with multivalue and single value")
+			}
+			scanString = append(scanString, "")
+			qValue = append(qValue, &scanString[len(scanString)-1])
+		case []int64:
+			mulValue = true
+			if len(qValue) > 0 && !mulValue {
+				return fmt.Errorf("using different types with multivalue and single value")
+			}
+			scanInt = append(scanInt, int64(-1))
+			klog.Infof("current length of scanInt: %d\n", len(scanInt))
+			klog.Infof("address of scanInt: %v\n", &scanInt[len(scanInt)-1])
+			qValue = append(qValue, &scanInt[len(scanInt)-1])
+		case []time.Time:
+			mulValue = true
+			if len(qValue) > 0 && !mulValue {
+				return fmt.Errorf("using different types with multivalue and single value")
+			}
+			scanTime = append(scanTime, time.Time{})
+			klog.Infof("current length of scanTime: %d\n", len(scanTime))
+			klog.Infof("address of scanTime: %v\n", &scanTime[len(scanTime)-1])
+			qValue = append(qValue, &scanTime[len(scanTime)-1])
+		}
+
+	}
+
+	if mulValue {
+		numString := 0
+		numInt := 0
+		for quResult.Next() {
+			if err := quResult.Scan(qValue...); err != nil {
+				return err
+			}
+			for i := 0; i < len(qValue); i++ {
+				val := *values[i]
+				switch val.(type) {
+				case []string:
+					dat := append(val.([]string), scanString[numString])
+					*values[i] = dat
+					numString++
+				case []int64:
+					klog.Infof("address from scanInt is: %s\n", &scanInt[numInt])
+					klog.Infof("value from scanInt is: %d\n", scanInt[numInt])
+					klog.Infof("data %v\n", val.([]int64))
+					dat := append(val.([]int64), scanInt[numInt])
+					*values[i] = dat
+					numInt++
+				}
+			}
+			numString = 0
+			numInt = 0
+		}
+	} else {
+		if !quResult.Next() {
+			return nil
+		}
+		if err := quResult.Scan(qValue...); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 func (p *Postgres) Query(table string, columns []string, parameters []string, values []*interface{}, parameterValue []interface{}) error {
