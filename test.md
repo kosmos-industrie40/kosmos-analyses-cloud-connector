@@ -5,8 +5,9 @@ In this file, you can find a description, how to test different endpoints.
 ## Content
 
 1. [Auth](#auth)
-1. [Contracts](#contract)
-1. [Upload Sensor Data](#upload_sensor_data)
+1. [Contracts](#contracts)
+1. [Upload Sensor Data](#upload-sensor-data)
+1. [Analyses](#analyse-results)
 
 ## Auth
 In this chapter a simple test case against the auth endpoint can be found. In three steps we will try to logged in, test if we are already logged in and log out.
