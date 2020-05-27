@@ -59,23 +59,22 @@ func (p *Postgres) QueryTime(table string, columns []string, parameters []string
 		return fmt.Errorf("lenght of columns and return values are not equal")
 	}
 
-	var numberParameter int = 1
 	for i, v := range parameters {
 		if parameter == "" {
 			parameter = fmt.Sprintf("%v = $%d", v, i+1)
 		} else {
 			parameter += fmt.Sprintf(" AND %v = $%d", v, i+1)
 		}
-		numberParameter++
 	}
 
-	if start.Equal(time.Time{}) {
+	var numberParameter int = len(parameters)
+	if !start.Equal(time.Time{}) {
 		parameter = fmt.Sprintf("time > $%d", numberParameter)
 		parameterValue = append(parameterValue, start)
 		numberParameter++
 	}
 
-	if end.Equal(time.Time{}) {
+	if !end.Equal(time.Time{}) {
 		parameter = fmt.Sprintf("time < $%d", numberParameter)
 		parameterValue = append(parameterValue, start)
 	}
@@ -125,8 +124,6 @@ func (p *Postgres) QueryTime(table string, columns []string, parameters []string
 				return fmt.Errorf("using different types with multivalue and single value")
 			}
 			scanInt = append(scanInt, int64(-1))
-			klog.Infof("current length of scanInt: %d\n", len(scanInt))
-			klog.Infof("address of scanInt: %v\n", &scanInt[len(scanInt)-1])
 			qValue = append(qValue, &scanInt[len(scanInt)-1])
 		case []time.Time:
 			mulValue = true
@@ -134,8 +131,6 @@ func (p *Postgres) QueryTime(table string, columns []string, parameters []string
 				return fmt.Errorf("using different types with multivalue and single value")
 			}
 			scanTime = append(scanTime, time.Time{})
-			klog.Infof("current length of scanTime: %d\n", len(scanTime))
-			klog.Infof("address of scanTime: %v\n", &scanTime[len(scanTime)-1])
 			qValue = append(qValue, &scanTime[len(scanTime)-1])
 		}
 
