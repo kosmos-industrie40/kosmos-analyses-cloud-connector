@@ -1,10 +1,10 @@
 package endpoints
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"strings"
-	"encoding/json"
 
 	"k8s.io/klog"
 
@@ -119,7 +119,7 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ur := strings.Split(r.URL.Path, "/")
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			klog.Errorf("could not read data from request body; err : %v\n")
+			klog.Errorf("could not read data from request body; err : %v\n", err)
 			w.WriteHeader(400)
 			return
 		}

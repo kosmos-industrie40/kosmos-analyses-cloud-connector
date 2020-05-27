@@ -36,8 +36,7 @@ func User(token string, db database.Postgres) (string, error) {
 	para = append(para, "token")
 
 	var value string
-	var inVal interface{}
-	inVal = value
+	var inVal interface{} = value
 	var val []*interface{}
 	val = append(val, &inVal)
 
@@ -47,11 +46,11 @@ func User(token string, db database.Postgres) (string, error) {
 	err := db.Query("token", columns, para, val, parameterValue)
 	klog.Infof("user is: %v", inVal)
 
-	switch inVal.(type) {
+	switch v := inVal.(type) {
 	default:
 		return "", fmt.Errorf("unexpected data type")
 	case string:
-		value = inVal.(string)
+		value = v
 	}
 
 	return value, err

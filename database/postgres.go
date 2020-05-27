@@ -78,9 +78,7 @@ func (p *Postgres) QueryTime(table string, columns []string, parameters []string
 	if end.Equal(time.Time{}) {
 		parameter = fmt.Sprintf("time < $%d", numberParameter)
 		parameterValue = append(parameterValue, start)
-		numberParameter++
 	}
-
 
 	var query string
 	if len(parameters) == 0 {
@@ -152,16 +150,14 @@ func (p *Postgres) QueryTime(table string, columns []string, parameters []string
 			}
 			for i := 0; i < len(qValue); i++ {
 				val := *values[i]
-				switch val.(type) {
+				switch v := val.(type) {
 				case []string:
-					dat := append(val.([]string), scanString[numString])
+					dat := append(v, scanString[numString])
 					*values[i] = dat
 					numString++
 				case []int64:
-					klog.Infof("address from scanInt is: %s\n", &scanInt[numInt])
-					klog.Infof("value from scanInt is: %d\n", scanInt[numInt])
 					klog.Infof("data %v\n", val.([]int64))
-					dat := append(val.([]int64), scanInt[numInt])
+					dat := append(v, scanInt[numInt])
 					*values[i] = dat
 					numInt++
 				}
@@ -261,16 +257,13 @@ func (p *Postgres) Query(table string, columns []string, parameters []string, va
 			}
 			for i := 0; i < len(qValue); i++ {
 				val := *values[i]
-				switch val.(type) {
+				switch v := val.(type) {
 				case []string:
-					dat := append(val.([]string), scanString[numString])
+					dat := append(v, scanString[numString])
 					*values[i] = dat
 					numString++
 				case []int64:
-					klog.Infof("address from scanInt is: %s\n", &scanInt[numInt])
-					klog.Infof("value from scanInt is: %d\n", scanInt[numInt])
-					klog.Infof("data %v\n", val.([]int64))
-					dat := append(val.([]int64), scanInt[numInt])
+					dat := append(v, scanInt[numInt])
 					*values[i] = dat
 					numInt++
 				}
@@ -320,20 +313,20 @@ func (p *Postgres) Update(table string, parameter []string, paramValues []interf
 	}
 
 	for _, v := range updateValues {
-		switch v.(type) {
+		switch value := v.(type) {
 		default:
 			return fmt.Errorf("unextepced type in updateValues")
 		case bool:
-			params = append(params, v.(bool))
+			params = append(params, value)
 		}
 	}
 
 	for _, v := range paramValues {
-		switch v.(type) {
+		switch value := v.(type) {
 		default:
 			return fmt.Errorf("unextepced type in updateValues")
 		case string:
-			params = append(params, v.(string))
+			params = append(params, value)
 		}
 	}
 

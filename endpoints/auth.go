@@ -47,7 +47,7 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		var user models.User
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			klog.Errorf("could not read data from request body; err : %v\n")
+			klog.Errorf("could not read data from request body; err : %v\n", err)
 			w.WriteHeader(400)
 			return
 		}
@@ -65,6 +65,10 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		token := models.Token{Token: tok}
 		w.WriteHeader(200)
 		sBody, err := json.Marshal(token)
+		if err != nil {
+			klog.Errorf("could not marshal token: %v\n", err)
+		}
+
 		if _, err := w.Write(sBody); err != nil {
 			w.WriteHeader(500)
 		}

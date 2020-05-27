@@ -13,7 +13,7 @@ import (
 // InsertResult insert a result into the database
 func InsertResult(contract string, machine string, sensor string, jsonData []byte, db database.Postgres) error {
 	var date models.UploadResult
-	if err := json.Unmarshal(jsonData, &date); err != nil{
+	if err := json.Unmarshal(jsonData, &date); err != nil {
 		return err
 	}
 
@@ -22,15 +22,14 @@ func InsertResult(contract string, machine string, sensor string, jsonData []byt
 }
 
 // GetSpecificResult returns a specific result as json
-func GetSpecificResult(contractId string, resultId string, db database.Postgres) ([]byte, error){
+func GetSpecificResult(contractId string, resultId string, db database.Postgres) ([]byte, error) {
 	resId, err := strconv.ParseInt(resultId, 10, 64)
 	if err != nil {
 		return nil, nil
 	}
 
 	var ret []byte
-	var cRet interface{}
-	cRet = ret
+	var cRet interface{} = ret
 	values := []*interface{}{&cRet}
 
 	if err := db.Query("analyse-results", []string{"result"}, []string{"id", "machine"}, values, []interface{}{contractId, resId}); err != nil {
@@ -114,9 +113,9 @@ func GetResultSet(contractId string, queryParams map[string][]string, db databas
 	for i := 0; i < len(time); i++ {
 		date := time[i]
 		ret = append(ret, models.ResultList{
-			Id: id[i],
+			Id:      id[i],
 			Machine: machine[i],
-			Date: date.Unix(),
+			Date:    date.Unix(),
 		})
 	}
 	return ret, nil

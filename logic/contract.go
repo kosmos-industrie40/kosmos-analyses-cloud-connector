@@ -11,8 +11,7 @@ import (
 
 func GetAllContracts(db database.Postgres) ([]string, error) {
 	var ret []string
-	var query interface{}
-	query = ret
+	var query interface{} = ret
 
 	var val []*interface{}
 	val = append(val, &query)
@@ -116,8 +115,7 @@ func queryMachine(contractId string, db database.Postgres) ([]models.ContractMac
 	var ret []models.ContractMachines
 
 	var id []string
-	var cId interface{}
-	cId = id
+	var cId interface{} = id
 	val := []*interface{}{&cId}
 
 	if err := db.Query("machine_contract", []string{"machine"}, []string{"contract"}, val, []interface{}{contractId}); err != nil {
@@ -138,8 +136,7 @@ func querySensor(machine string, db database.Postgres) ([]models.ContractSensors
 	var ret []models.ContractSensors
 
 	var id, sensorId []int64
-	var cId interface{}
-	cId = id
+	var cId interface{} = id
 	val := []*interface{}{&cId}
 
 	if err := db.Query("machine_sensor", []string{"id"}, []string{"machine"}, val, []interface{}{machine}); err != nil {
@@ -151,15 +148,12 @@ func querySensor(machine string, db database.Postgres) ([]models.ContractSensors
 
 	for _, v := range id {
 		var sensId []int64
-		var cSensorId interface{}
-		cSensorId = sensId
+		var cSensorId interface{} = sensId
 		val := []*interface{}{&cSensorId}
 		if err := db.Query("machine_sensor", []string{"sensor"}, []string{"id"}, val, []interface{}{v}); err != nil {
 			return nil, err
 		}
-		for _, k := range cSensorId.([]int64) {
-			sensorId = append(sensorId, k)
-		}
+		sensorId = append(sensorId, cSensorId.([]int64)...)
 	}
 
 	if len(id) != len(sensorId) {
@@ -174,8 +168,7 @@ func querySensor(machine string, db database.Postgres) ([]models.ContractSensors
 		var sensor models.ContractSensors
 
 		var transId string
-		var cTransId interface{}
-		cTransId = transId
+		var cTransId interface{} = transId
 		val := []*interface{}{&cTransId}
 
 		if err := db.Query("sensor", []string{"transmitted_id"}, []string{"id"}, val, []interface{}{sensorId[i]}); err != nil {
@@ -185,8 +178,7 @@ func querySensor(machine string, db database.Postgres) ([]models.ContractSensors
 		sensor.SensorId = cTransId.(string)
 
 		var modelsId []int64
-		var cModelsId interface{}
-		cModelsId = modelsId
+		var cModelsId interface{} = modelsId
 		valu := []*interface{}{&cModelsId}
 
 		klog.Infof("machine_sensor id: %d\n", j)
@@ -229,16 +221,14 @@ func InsertContract(contract models.Contract, db database.Postgres) error {
 }
 
 func DeleteContract(contract string, db database.Postgres) error {
-	var upV bool
-	upV = true
+	var upV bool = true
 	err := db.Update("contract", []string{"id"}, []interface{}{contract}, []string{"delete"}, []interface{}{upV})
 	return err
 }
 
 func insertModel(model models.Model, db database.Postgres) (int64, error) {
 	var id int64 = -1
-	var cId interface{}
-	cId = id
+	var cId interface{} = id
 	value := []*interface{}{&cId}
 
 	if err := db.Query("model", []string{"id"}, []string{"url", "tag"}, value, []interface{}{model.Url, model.Tag}); err != nil {
@@ -310,8 +300,7 @@ func insertSensor(machineId string, sensors []models.ContractSensors, db databas
 	for _, sensor := range sensors {
 
 		var id int64 = -1
-		var cId interface{}
-		cId = id
+		var cId interface{} = id
 		value := []*interface{}{&cId}
 
 		if err := db.Query("sensor", []string{"id"}, []string{"transmitted_id"}, value, []interface{}{sensor.SensorId}); err != nil {
@@ -330,8 +319,7 @@ func insertSensor(machineId string, sensors []models.ContractSensors, db databas
 		}
 
 		var msId int64 = -1
-		var cMsId interface{}
-		cMsId = msId
+		var cMsId interface{} = msId
 		val := []*interface{}{&cMsId}
 
 		if err := db.Query("machine_sensor", []string{"id"}, []string{"machine", "sensor"}, val, []interface{}{machineId, id}); err != nil {
