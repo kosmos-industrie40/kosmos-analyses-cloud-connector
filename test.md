@@ -15,17 +15,17 @@ We are using `curl` to send the requests.
 
 ### Log in
 ```bash
-curl -i -X POST localhost:8080 --data '{"user":"test", "password":"abc"}'
+curl -i -X POST localhost:8080/auth --data '{"user":"test", "password":"abc"}'
 ```
 
 ### Test Authenticated
 ```bash
-curl -i --header 'token:(RETURN VALUE FROM LOG IN REQUEST)' localhost:8080 
+curl -i --header 'token:(RETURN VALUE FROM LOG IN REQUEST)' localhost:8080/auth
 ```
 
 ### Logout
 ```bash
-curl -i -X DELETE --header 'token:(RETURN VALUE FROM LOG IN REQUEST)' localhost:8080 
+curl -i -X DELETE --header 'token:(RETURN VALUE FROM LOG IN REQUEST)' localhost:8080/auth
 ```
 
 ## Contracts
