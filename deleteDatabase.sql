@@ -8,3 +8,4 @@ DROP TABLE sensor CASCADE;
 DROP TABLE machine_contract CASCADE;
 DROP TABLE machine_sensor CASCADE;
 DROP TABLE sensor_model CASCADE;
+DROP TABLE analyse_result CASCADE;

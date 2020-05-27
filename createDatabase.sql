@@ -8,4 +8,4 @@ CREATE TABLE IF NOT EXISTS sensor(id BIGSERIAL PRIMARY KEY, transmitted_id TEXT)
 CREATE TABLE IF NOT EXISTS machine_contract(machine TEXT REFERENCES machine(id), contract TEXT REFERENCES contract);
 CREATE TABLE IF NOT EXISTS machine_sensor(id BIGSERIAL PRIMARY KEY, machine TEXT REFERENCES  machine(id), sensor BIGINT REFERENCES sensor);
 CREATE TABLE IF NOT EXISTS sensor_model(sensor BIGINT REFERENCES machine_sensor, model BIGINT REFERENCES model);
-CREATE TABLE IF NOT EXISTS analyse_result(ID BIGSERIAL PRIMARY KEY, machine TEXT REFERENCES machine, sensor TEXT, time TIMESTAMP, result JSON);
+CREATE TABLE IF NOT EXISTS analyse_result(ID BIGSERIAL PRIMARY KEY, machine TEXT REFERENCES machine, sensor TEXT, time TIMESTAMP, result JSON, contract TEXT REFERENCES contract(id));
