@@ -301,7 +301,7 @@ func (p *Postgres) Update(table string, parameter []string, paramValues []interf
 		if spec == "" {
 			spec = fmt.Sprintf("%s = $%d", v, i+1+len(updateValues))
 		} else {
-			spec += fmt.Sprintf(", %s = $%d", v, i+1+len(updateValues))
+			spec += fmt.Sprintf("AND %s = $%d", v, i+1+len(updateValues))
 		}
 	}
 
@@ -316,7 +316,9 @@ func (p *Postgres) Update(table string, parameter []string, paramValues []interf
 	for _, v := range updateValues {
 		switch value := v.(type) {
 		default:
-			return fmt.Errorf("unextepced type in updateValues")
+			return fmt.Errorf("unexpected type in updateValues")
+		case string:
+			params = append(params, value)
 		case bool:
 			params = append(params, value)
 		}
@@ -325,8 +327,10 @@ func (p *Postgres) Update(table string, parameter []string, paramValues []interf
 	for _, v := range paramValues {
 		switch value := v.(type) {
 		default:
-			return fmt.Errorf("unextepced type in updateValues")
+			return fmt.Errorf("unexpected type in paramValues")
 		case string:
+			params = append(params, value)
+		case int64:
 			params = append(params, value)
 		}
 	}

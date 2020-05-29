@@ -55,6 +55,10 @@ func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if len(data) == 0 {
+			return
+		}
+
 		printData, err := json.Marshal(data)
 		if err != nil {
 			w.WriteHeader(500)
@@ -83,7 +87,7 @@ func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var uploadedData []models.UpdateModelState
+		var uploadedData models.UpdateModelState
 		if err := json.Unmarshal(body, &uploadedData); err != nil {
 			klog.Errorf("could not unmarshal data: %s\n", err)
 			w.WriteHeader(400)

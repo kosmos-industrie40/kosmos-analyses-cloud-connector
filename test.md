@@ -9,6 +9,7 @@ In this file, you can find a description, how to test different endpoints.
 1. [Upload Sensor Data](#upload-sensor-data)
 1. [Analyses](#analyse-results)
 1. [Metrics](#metrics)
+1. [Model](#model)
 
 ## Auth
 In this chapter a simple test case against the auth endpoint can be found. In three steps we will try to logged in, test if we are already logged in and log out.
@@ -96,9 +97,38 @@ curl -i -X POST --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:
 ```
 
 ## Metrics
-The metric enpoint provides prometheus metrics which are created from the promehteus golang client. So you can query those with the following
+The metric endpoint provides prometheus metrics which are created from the promehteus golang client. So you can query those with the following
 command:
 ```bash
 curl -i localhost:8080/metrics
 ```
 
+## Model
+The model endpoint provides the functionality to the model endpoint. On this you can query for model updates and update
+the state of the model.
+
+### Get Model
+This endpoint uses a get request to query the required models.
+```bash
+curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/77
+```
+The last request should be empty. Before we can query data; we have to insert those data into the database. With the next
+code block contains the data which should be inserted.
+
+```bash
+psql -d <database> -c "INSERT INTO machine VALUES ('contract')"
+psql -d <database> -c "INSERT INTO model (id, tag, url) VALUES (0, 'tag', 'url')"
+psql -d <database> -c "INSERT INTO model_update (model, contract) VALUES (0, 'contract-test33')"
+```
+
+```bash
+curl --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/contract-test33
+```
+
+### Update model
+In the last section we want to set a stae to the specific contract. Before you can execute the following command, you should
+inserted the data into the database.
+
+```bash
+curl -X PUT --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/contract-test33 --data '{"state":"test", "models":[{"tag":"tag", "url":"url"}]}'
+```
