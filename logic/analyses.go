@@ -8,17 +8,25 @@ import (
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+
+	"k8s.io/klog"
 )
 
 // InsertResult insert a result into the database
-func InsertResult(contract string, machine string, sensor string, jsonData []byte, db database.Postgres) error {
-	var date models.UploadResult
-	if err := json.Unmarshal(jsonData, &date); err != nil {
-		return err
-	}
+func InsertResult(contract string, machine string, sensor string, data []models.UploadResult, db database.Postgres) error {
+	for _, res := range data {
+		curJson, err := json.Marshal(res)
+		if err != nil {
+			return err
+		}
 
-	err := db.Insert("analyse_result", []string{"contract, machine, sensor, date, json"}, []interface{}{contract, machine, sensor, date, jsonData})
-	return err
+		date := tim.Unix(res.Date, 0)
+
+		if err := db.Insert("analyse_result", []string{"contract", "machine", "sensor", "time", "result"}, []interface{}{contract, machine, sensor, date, curJson}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // GetSpecificResult returns a specific result as json
@@ -32,7 +40,8 @@ func GetSpecificResult(contractId string, resultId string, db database.Postgres)
 	var cRet interface{} = ret
 	values := []*interface{}{&cRet}
 
-	if err := db.Query("analyse-results", []string{"result"}, []string{"id", "machine"}, values, []interface{}{contractId, resId}); err != nil {
+	klog.Infof("contract: %s\tid: %d", contractId, resId)
+	if err := db.Query("analyse_result", []string{"result"}, []string{"contract", "id"}, values, []interface{}{contractId, resId}); err != nil {
 		return nil, err
 	}
 
@@ -94,10 +103,12 @@ func GetResultSet(contractId string, queryParams map[string][]string, db databas
 	cMachine = machine
 	cId = id
 	values := []*interface{}{
+		&cId,
 		&cTime,
 		&cMachine,
-		&cId,
 	}
+
+	klog.Infof("parameter %v\tvalues %v\t", parameters, parameterValue)
 	if err := db.QueryTime("analyse_result", []string{"id", "time", "machine"}, parameters, "time", start, end, values, parameterValue); err != nil {
 		return nil, err
 	}
