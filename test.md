@@ -8,6 +8,7 @@ In this file, you can find a description, how to test different endpoints.
 1. [Contracts](#contracts)
 1. [Upload Sensor Data](#upload-sensor-data)
 1. [Analyses](#analyse-results)
+1. [Metrics](#metrics)
 
 ## Auth
 In this chapter a simple test case against the auth endpoint can be found. In three steps we will try to logged in, test if we are already logged in and log out.
@@ -94,4 +95,10 @@ Before you can upload the data you have the contract and the machine has to be c
 curl -i -X POST --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/analyses/77/mach1/sens1 --data @exampleAnalyseResult.json
 ```
 
+## Metrics
+The metric enpoint provides prometheus metrics which are created from the promehteus golang client. So you can query those with the following
+command:
+```bash
+curl -i localhost:8080/metrics
+```
 
