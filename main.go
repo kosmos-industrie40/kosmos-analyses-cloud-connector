@@ -66,12 +66,10 @@ func main() {
 
 	klog.Infof("define server")
 	var auth http.Handler = endpoints.Auth{Db: db}
-
 	var contract http.Handler = endpoints.Contract{Db: db}
-
 	var machineData http.Handler = endpoints.MachineData{SendChan: sendChan, Db: db}
-
 	var analysesResult http.Handler = endpoints.Analyses{Db: db}
+	var model http.Handler = endpoints.Model{Db: db}
 
 	// paths
 	http.Handle("/metrics", promhttp.Handler())
@@ -79,7 +77,7 @@ func main() {
 	http.Handle("/machine-data/", machineData)
 	http.Handle("/auth", auth)
 	http.Handle("/health", new(endpoints.Health))
-	http.Handle("/model/", new(endpoints.Model))
+	http.Handle("/model/", model)
 	http.Handle("/ready", new(endpoints.Ready))
 	http.Handle("/contract/", contract)
 
