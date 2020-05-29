@@ -19,3 +19,6 @@ coverage:
 
 race:
 	go test -short -race ./...
+
+docker:
+	docker build -t edge-cloud-connector -f Dockerfile .
