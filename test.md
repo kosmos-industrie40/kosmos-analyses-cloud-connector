@@ -71,3 +71,27 @@ To upload data you can use the following exmple request.
 ```bash
  curl -i -X POST --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/machine-data/ --data @exampleData.json
 ```
+## Analyse Results
+in this chapter is the description how to test the analyses result endpoint. The 
+endpoint is divided into three parts.
+
+### Get Specific Result
+To receive a specific analyse result you can use the following curl command. 
+```bash
+curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/analyses/77/8
+```
+
+### Get Result Set
+To receive all results from a specific contract:
+```bash
+curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/analyses/77
+```
+
+
+### Upload Result
+Before you can upload the data you have the contract and the machine has to be created.
+```bash
+curl -i -X POST --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/analyses/77/mach1/sens1 --data @exampleAnalyseResult.json
+```
+
+
