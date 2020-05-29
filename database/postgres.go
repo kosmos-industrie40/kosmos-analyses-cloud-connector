@@ -139,10 +139,12 @@ func (p *Postgres) QueryTime(table string, columns []string, parameters []string
 	if mulValue {
 		numString := 0
 		numInt := 0
+		numTime := 0
 		for quResult.Next() {
 			if err := quResult.Scan(qValue...); err != nil {
 				return err
 			}
+			klog.Infof("scaned data: %v\n", qValue)
 			for i := 0; i < len(qValue); i++ {
 				val := *values[i]
 				switch v := val.(type) {
@@ -151,14 +153,18 @@ func (p *Postgres) QueryTime(table string, columns []string, parameters []string
 					*values[i] = dat
 					numString++
 				case []int64:
-					klog.Infof("data %v\n", val.([]int64))
 					dat := append(v, scanInt[numInt])
+					*values[i] = dat
+					numInt++
+				case []time.Time:
+					dat := append(v, scanTime[numTime])
 					*values[i] = dat
 					numInt++
 				}
 			}
 			numString = 0
 			numInt = 0
+			numTime = 0
 		}
 	} else {
 		if !quResult.Next() {
