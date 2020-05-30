@@ -11,6 +11,7 @@ import (
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/config"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/endpoints"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/mqtt"
 )
@@ -64,12 +65,23 @@ func main() {
 		}
 	}()
 
-	klog.Infof("define server")
-	var auth http.Handler = endpoints.Auth{Db: db}
-	var contract http.Handler = endpoints.Contract{Db: db}
-	var machineData http.Handler = endpoints.MachineData{SendChan: sendChan, Db: db}
-	var analysesResult http.Handler = endpoints.Analyses{Db: db}
-	var model http.Handler = endpoints.Model{Db: db}
+	klog.Infof("setting up logic")
+	var authentication logic.Authentication = logic.Auth{}
+	var ana logic.Analyses = logic.AnalysesInitial{}
+	var modelLogic logic.Model = logic.Mod{}
+	var cont logic.Contract = logic.Contra{}
+
+	authentication.Authentication(db)
+	ana.Analyses(db)
+	modelLogic.Model(db)
+	cont.Contract(db)
+
+	klog.Infof("define endpoints")
+	var auth http.Handler = endpoints.Auth{Auth: authentication}
+	var contract http.Handler = endpoints.Contract{Auth: authentication, Contract: cont}
+	var machineData http.Handler = endpoints.MachineData{SendChan: sendChan, Auth: authentication}
+	var analysesResult http.Handler = endpoints.Analyses{Auth: authentication, Analyses: ana}
+	var model http.Handler = endpoints.Model{Auth: authentication, Model: modelLogic}
 
 	// paths
 	http.Handle("/metrics", promhttp.Handler())

@@ -9,8 +9,17 @@ import (
 	"k8s.io/klog"
 )
 
+type Auth struct {
+	db database.Postgres
+}
+
+// Authentication comparing to a constructor
+func (a Auth) Authentication(db database.Postgres) {
+	a.db = db
+}
+
 // Login this function is been used to Login a user
-func Login(user, password string, db database.Postgres) (string, error) {
+func (a Auth) Login(user, password string) (string, error) {
 	//TODO check against user list (example LDAP)
 
 	token := strings.Split(uuid.New().URN(), ":")
@@ -22,13 +31,13 @@ func Login(user, password string, db database.Postgres) (string, error) {
 	data = append(data, token[2])
 	data = append(data, user)
 
-	err := db.Insert("token", columns, data)
+	err := a.db.Insert("token", columns, data)
 
 	return token[2], err
 
 }
 
-func User(token string, db database.Postgres) (string, error) {
+func (a Auth) User(token string) (string, error) {
 	var parameterValue []interface{}
 	parameterValue = append(parameterValue, token)
 
@@ -43,7 +52,7 @@ func User(token string, db database.Postgres) (string, error) {
 	var columns []string
 	columns = append(columns, "name")
 
-	err := db.Query("token", columns, para, val, parameterValue)
+	err := a.db.Query("token", columns, para, val, parameterValue)
 	klog.Infof("user is: %v", inVal)
 
 	switch v := inVal.(type) {
@@ -56,12 +65,12 @@ func User(token string, db database.Postgres) (string, error) {
 	return value, err
 }
 
-func Logout(token string, db database.Postgres) error {
+func (a Auth) Logout(token string) error {
 	var parameter []string
 	var paramValue []interface{}
 
 	parameter = append(parameter, "token")
 	paramValue = append(paramValue, token)
 
-	return db.Delete("token", parameter, paramValue)
+	return a.db.Delete("token", parameter, paramValue)
 }

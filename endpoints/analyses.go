@@ -8,13 +8,13 @@ import (
 
 	"k8s.io/klog"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
 )
 
 type Analyses struct {
-	Db database.Postgres
+	Auth     logic.Authentication
+	Analyses logic.Analyses
 }
 
 func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +25,7 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := logic.User(token, a.Db)
+	user, err := a.Auth.User(token)
 	if err != nil {
 		w.WriteHeader(500)
 		klog.Errorf("could not test if user is authenticated: %s", err)
@@ -55,7 +55,7 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			for i, v := range queryParam {
 				parsedQuery[i] = v
 			}
-			resSet, err := logic.GetResultSet(contractId, parsedQuery, a.Db)
+			resSet, err := a.Analyses.GetResultSet(contractId, parsedQuery)
 			if err != nil {
 				klog.Errorf("could not query result set: %v\n", err)
 				w.WriteHeader(500)
@@ -90,7 +90,7 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				for i, v := range queryParam {
 					parsedQuery[i] = v
 				}
-				resSet, err := logic.GetResultSet(contractId, parsedQuery, a.Db)
+				resSet, err := a.Analyses.GetResultSet(contractId, parsedQuery)
 				if err != nil {
 					klog.Errorf("could not query result set: %v\n", err)
 					w.WriteHeader(500)
@@ -116,7 +116,7 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 				return
 			} else {
-				ret, err := logic.GetSpecificResult(ur[2], ur[3], a.Db)
+				ret, err := a.Analyses.GetSpecificResult(ur[2], ur[3])
 				if err != nil {
 					klog.Errorf("could not query specific result: %s\n", err)
 					w.WriteHeader(500)
@@ -149,7 +149,7 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := logic.InsertResult(ur[2], ur[3], ur[4], data, a.Db); err != nil {
+		if err := a.Analyses.InsertResult(ur[2], ur[3], ur[4], data); err != nil {
 			w.WriteHeader(500)
 			klog.Errorf("could not insert data: %s\n", err)
 			return

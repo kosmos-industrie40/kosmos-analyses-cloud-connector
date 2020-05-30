@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
 
@@ -13,7 +12,7 @@ import (
 )
 
 type Auth struct {
-	Db database.Postgres
+	Auth logic.Authentication
 }
 
 func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +23,7 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(204)
 			return
 		}
-		user, err := logic.User(token, a.Db)
+		user, err := a.Auth.User(token)
 		if err != nil {
 			w.WriteHeader(500)
 			klog.Errorf("internal server error with database connection; err: %v", err)
@@ -57,7 +56,7 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		tok, err := logic.Login(user.Name, user.Password, a.Db)
+		tok, err := a.Auth.Login(user.Name, user.Password)
 		if err != nil {
 			klog.Errorf("could not insert token into db: %v\n", err)
 			w.WriteHeader(500)
@@ -75,7 +74,7 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	case "DELETE":
 		token := r.Header.Get("token")
-		if err := logic.Logout(token, a.Db); err != nil {
+		if err := a.Auth.Logout(token); err != nil {
 			klog.Errorf("could not delete data: %s\n", err)
 			w.WriteHeader(500)
 		}

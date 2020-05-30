@@ -12,8 +12,16 @@ import (
 	"k8s.io/klog"
 )
 
+type AnalysesInitial struct {
+	db database.Postgres
+}
+
+func (a AnalysesInitial) Analyses(db database.Postgres) {
+	a.db = db
+}
+
 // InsertResult insert a result into the database
-func InsertResult(contract string, machine string, sensor string, data []models.UploadResult, db database.Postgres) error {
+func (a AnalysesInitial) InsertResult(contract string, machine string, sensor string, data []models.UploadResult) error {
 	for _, res := range data {
 		curJson, err := json.Marshal(res)
 		if err != nil {
@@ -22,7 +30,7 @@ func InsertResult(contract string, machine string, sensor string, data []models.
 
 		date := tim.Unix(res.Date, 0)
 
-		if err := db.Insert("analyse_result", []string{"contract", "machine", "sensor", "time", "result"}, []interface{}{contract, machine, sensor, date, curJson}); err != nil {
+		if err := a.db.Insert("analyse_result", []string{"contract", "machine", "sensor", "time", "result"}, []interface{}{contract, machine, sensor, date, curJson}); err != nil {
 			return err
 		}
 	}
@@ -30,7 +38,7 @@ func InsertResult(contract string, machine string, sensor string, data []models.
 }
 
 // GetSpecificResult returns a specific result as json
-func GetSpecificResult(contractId string, resultId string, db database.Postgres) ([]byte, error) {
+func (a AnalysesInitial) GetSpecificResult(contractId string, resultId string) ([]byte, error) {
 	resId, err := strconv.ParseInt(resultId, 10, 64)
 	if err != nil {
 		return nil, nil
@@ -41,7 +49,7 @@ func GetSpecificResult(contractId string, resultId string, db database.Postgres)
 	values := []*interface{}{&cRet}
 
 	klog.Infof("contract: %s\tid: %d", contractId, resId)
-	if err := db.Query("analyse_result", []string{"result"}, []string{"contract", "id"}, values, []interface{}{contractId, resId}); err != nil {
+	if err := a.db.Query("analyse_result", []string{"result"}, []string{"contract", "id"}, values, []interface{}{contractId, resId}); err != nil {
 		return nil, err
 	}
 
@@ -49,7 +57,7 @@ func GetSpecificResult(contractId string, resultId string, db database.Postgres)
 }
 
 // GetResultSet returns an array of all results, which fulfill given parameters
-func GetResultSet(contractId string, queryParams map[string][]string, db database.Postgres) ([]models.ResultList, error) {
+func (a AnalysesInitial) GetResultSet(contractId string, queryParams map[string][]string) ([]models.ResultList, error) {
 	parameters := []string{"contract"}
 	parameterValue := []interface{}{contractId}
 	start := tim.Time{}
@@ -109,7 +117,7 @@ func GetResultSet(contractId string, queryParams map[string][]string, db databas
 	}
 
 	klog.Infof("parameter %v\tvalues %v\t", parameters, parameterValue)
-	if err := db.QueryTime("analyse_result", []string{"id", "time", "machine"}, parameters, "time", start, end, values, parameterValue); err != nil {
+	if err := a.db.QueryTime("analyse_result", []string{"id", "time", "machine"}, parameters, "time", start, end, values, parameterValue); err != nil {
 		return nil, err
 	}
 	time = cTime.([]tim.Time)

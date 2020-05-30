@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
 
@@ -14,7 +13,8 @@ import (
 )
 
 type Contract struct {
-	Db database.Postgres
+	Auth     logic.Authentication
+	Contract logic.Contract
 }
 
 func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +25,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := logic.User(token, c.Db)
+	user, err := c.Auth.User(token)
 	if err != nil {
 		w.WriteHeader(500)
 		klog.Errorf("could not test if user is authenticated: %s", err)
@@ -44,7 +44,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		default:
 			w.WriteHeader(400)
 		case 2:
-			contracts, err := logic.GetAllContracts(c.Db)
+			contracts, err := c.Contract.GetAllContracts()
 			if err != nil {
 				klog.Errorf("could not query all contracts: %s\n", err)
 				w.WriteHeader(500)
@@ -65,7 +65,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		case 3:
 			if splitted[2] == "" {
-				contracts, err := logic.GetAllContracts(c.Db)
+				contracts, err := c.Contract.GetAllContracts()
 				if err != nil {
 					klog.Errorf("could not query all contracts: %s\n", err)
 					w.WriteHeader(500)
@@ -87,7 +87,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(200)
 			} else {
 				contractId := splitted[2]
-				data, err := logic.GetContract(contractId, c.Db)
+				data, err := c.Contract.GetContract(contractId)
 				if err != nil {
 					klog.Errorf("could not receive contract: %s\n", err)
 					w.WriteHeader(500)
@@ -113,7 +113,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			klog.Infof("wrong count of parameters")
 			w.WriteHeader(400)
 		}
-		if err := logic.DeleteContract(splitted[2], c.Db); err != nil {
+		if err := c.Contract.DeleteContract(splitted[2]); err != nil {
 			klog.Errorf("could not update contract: %s", err)
 			w.WriteHeader(500)
 			return
@@ -138,7 +138,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := logic.InsertContract(contract, c.Db); err != nil {
+		if err := c.Contract.InsertContract(contract); err != nil {
 			klog.Errorf("could not insert data into db: %s\n", err)
 			w.WriteHeader(500)
 			return

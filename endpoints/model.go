@@ -8,13 +8,13 @@ import (
 
 	"k8s.io/klog"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
 )
 
 type Model struct {
-	Db database.Postgres
+	Auth  logic.Authentication
+	Model logic.Model
 }
 
 func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +25,7 @@ func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := logic.User(token, m.Db)
+	user, err := m.Auth.User(token)
 	if err != nil {
 		w.WriteHeader(500)
 		klog.Errorf("could not test if user is authenticated: %s", err)
@@ -48,7 +48,7 @@ func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data, err := logic.GetModel(ur[2], m.Db)
+		data, err := m.Model.GetModel(ur[2])
 		if err != nil {
 			w.WriteHeader(500)
 			klog.Errorf("could not received update model: %s\n", err)
@@ -94,7 +94,7 @@ func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = logic.UpdateModel(ur[2], uploadedData, m.Db)
+		err = m.Model.UpdateModel(ur[2], uploadedData)
 		if err != nil {
 			w.WriteHeader(500)
 			klog.Errorf("could not update model: %s\n", err)

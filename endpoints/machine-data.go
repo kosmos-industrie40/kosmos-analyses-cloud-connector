@@ -8,7 +8,6 @@ import (
 
 	"k8s.io/klog"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/mqtt"
@@ -16,7 +15,7 @@ import (
 
 type MachineData struct {
 	SendChan chan mqtt.Msg
-	Db       database.Postgres
+	Auth     logic.Authentication
 }
 
 func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +26,7 @@ func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := logic.User(token, m.Db)
+	user, err := m.Auth.User(token)
 	if err != nil {
 		w.WriteHeader(500)
 		klog.Errorf("could not test if user is authenticated: %s", err)
