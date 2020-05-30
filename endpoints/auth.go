@@ -52,7 +52,7 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := json.Unmarshal(body, &user); err != nil {
 			klog.Errorf("could not unmarshal data; error %s", err)
-			w.WriteHeader(500)
+			w.WriteHeader(400)
 			return
 		}
 
@@ -60,6 +60,7 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			klog.Errorf("could not insert token into db: %v\n", err)
 			w.WriteHeader(500)
+			return
 		}
 		token := models.Token{Token: tok}
 		w.WriteHeader(200)
