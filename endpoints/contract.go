@@ -43,11 +43,17 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		switch len(splitted) {
 		default:
 			w.WriteHeader(400)
+			return
 		case 2:
 			contracts, err := c.Contract.GetAllContracts()
 			if err != nil {
 				klog.Errorf("could not query all contracts: %s\n", err)
 				w.WriteHeader(500)
+				return
+			}
+
+			if len(contracts) == 0 {
+				w.WriteHeader(200)
 				return
 			}
 
@@ -69,6 +75,11 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					klog.Errorf("could not query all contracts: %s\n", err)
 					w.WriteHeader(500)
+					return
+				}
+
+				if len(contracts) == 0 {
+					w.WriteHeader(200)
 					return
 				}
 
@@ -112,6 +123,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if len(splitted) != 3 {
 			klog.Infof("wrong count of parameters")
 			w.WriteHeader(400)
+			return
 		}
 		if err := c.Contract.DeleteContract(splitted[2]); err != nil {
 			klog.Errorf("could not update contract: %s", err)
