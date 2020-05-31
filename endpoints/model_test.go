@@ -168,7 +168,7 @@ func TestModelGet(t *testing.T) {
 
 		if len(test.Expected) == 0 {
 			if "" != rr.Body.String() {
-				t.Errorf("handler returnes wrong body response: got %s want %s", string(rr.Body.Bytes()), "")
+				t.Errorf("handler returnes wrong body response: got %s want %s", rr.Body.String(), "")
 			}
 			continue
 		}
@@ -179,7 +179,7 @@ func TestModelGet(t *testing.T) {
 		}
 
 		if string(ex) != rr.Body.String() {
-			t.Errorf("handler returnes wrong body response: got %s want %s", string(rr.Body.Bytes()), string(ex))
+			t.Errorf("handler returnes wrong body response: got %s want %s", rr.Body.String(), string(ex))
 		}
 	}
 }
