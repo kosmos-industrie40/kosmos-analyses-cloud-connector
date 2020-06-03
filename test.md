@@ -1,19 +1,49 @@
 # Test
 
-In this file, you can find a description, how to test different endpoints.
+This file contains a description how the single endpoints could be tested.
 
 ## Content
-
-1. [Auth](#auth)
+1. [Dependencies](#dependencies)
+1. [Requirements](#requirements)
+1. [Authentication](#authentication)
 1. [Contracts](#contracts)
 1. [Upload Sensor Data](#upload-sensor-data)
 1. [Analyses](#analyse-results)
 1. [Metrics](#metrics)
 1. [Model](#model)
 
-## Auth
-In this chapter a simple test case against the auth endpoint can be found. In three steps we will try to logged in, test if we are already logged in and log out.
-We are using `curl` to send the requests.
+## Dependencies
+To execute all of theses test we are using the command line tools:
+- curl
+- mosquitto\_sub
+- jq
+- psql
+
+On a Linux system you can install them via your package manger.
+The following example using a Debian based Linux distribution.
+```bash
+apt update
+apt upgrade -y
+apt install -y curl mosquitto-clients jq postgresql-client
+```
+
+## Requirements
+In the most endpoints a header file with a token has to be added. To simplify the commands we can use a `test-user`
+with a predefined token. This will be inserted to the database and you can use them in the test cases.
+
+To insert these data point you can use this command:
+```bash
+psql -h <host> -d <database> -U <database user> -c \
+"INSERT INTO token (name, token) VALUES ('test-user', 'ca397616-e351-47c3-ae7b-0785e6278357');"
+```
+
+In this test we are assuming that the program is running on the `localhost` and using the port `8080`.
+
+The test data files are located in the `test` directory. In this test file we are assuming, that the working directory
+is in the test directory.
+
+## Authentication
+This section contains the test case to test against the authentication endpoint. 
 
 ### Log in
 ```bash
@@ -22,54 +52,51 @@ curl -i -X POST localhost:8080/auth --data '{"user":"test", "password":"abc"}'
 
 ### Test Authenticated
 ```bash
-curl -i --header 'token:(RETURN VALUE FROM LOG IN REQUEST)' localhost:8080/auth
+curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/auth
 ```
 
 ### Logout
 ```bash
-curl -i -X DELETE --header 'token:(RETURN VALUE FROM LOG IN REQUEST)' localhost:8080/auth
+curl -i -X DELETE --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/auth
 ```
+(In this case you are delete the token and if you want to use the example token in the next steps you have
+to reinsert the user-token combination)
 
 ## Contracts
-
-Before the following queries could be used, you have to log in to the api.
-You can use the Auth/Login query from the previous chapter.
+In this section the contract endpoint will be tested
 
 ### Upload Contract
 ```
-curl -X POST --header 'token:<insert auth token here>' -i localhost:8080/contract/ --data @testContract.json
+curl -X POST --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' -i localhost:8080/contract/ --data @testContract.json
 ```
-where `insert auth token here` is the authentication token from the login.
 
 ### List of all Contracts
 ```
-curl --header 'token:<insert auth token here>' -i localhost:8080/contract/
+curl --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' -i localhost:8080/contract/
 ```
-where `insert auth token here` is the authentication token from the login.
 
 ### List specific Contract
 ```
-curl --header 'token:<insert auth token here>' -i localhost:8080/contract/<contractId>
+curl --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' -i localhost:8080/contract/<contractId>
 ```
-where `insert auth token here` is the authentication token from the login.
-where `contractId` is the specific contract.
+Where `contractId` is the specific contract.
 
 ### Delete Contract
 ```
 curl -X DELETE --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' -i localhost:8080/contract/<contractId>
 ```
 
-where `insert auth token here` is the authentication token from the login.
-where `contractId` is the specific contract.
+Where `contractId` is the specific contract.
 
 ## Upload Sensor Data
-You have to log in before you can upload your data. To do this, you can use the described way in [Auth/Log in](#auth_log_in).
-
 You can find an example of sensor data, which can be uploaded in the `exampleData.json` file.
-To view the data output you have to start a mqtt subscriber. You can use `mosquitto_sub` from
-from the mosquitto-clients package. To start this, you can use this command `mosquitto_sub -t 'kosmos/machine-data/#'`
+To view the data output you have to start a mqtt subscriber. The following command can be used to
+view messages on a mqtt topic.
+```bash
+mosquitto_sub -t 'kosmos/machine-data/#'
+```
 
-To upload data you can use the following exmple request.
+To upload data you can use the following example request.
 ```bash
  curl -i -X POST --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/machine-data/ --data @exampleData.json
 ```
@@ -126,8 +153,8 @@ curl --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/
 ```
 
 ### Update model
-In the last section we want to set a stae to the specific contract. Before you can execute the following command, you should
-inserted the data into the database.
+In the last section we want to set a state to the specific contract. Before you can execute the following command, you should
+inserted the data into the database. The command to insert those can be found in the previous section.
 
 ```bash
 curl -X PUT --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/contract-test33 --data '{"state":"test", "models":[{"tag":"tag", "url":"url"}]}'
