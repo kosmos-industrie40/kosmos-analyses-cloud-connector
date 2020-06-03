@@ -25,7 +25,7 @@ func (p *Postgres) Connect(server, user, password, database string, port int) er
 	return err
 }
 
-// Insert you can insert data into a defined table with this function
+// Insert insert data into a defined table with this function
 func (p *Postgres) Insert(table string, columns []string, val []interface{}) error {
 	var valuesPlaceholder string
 
