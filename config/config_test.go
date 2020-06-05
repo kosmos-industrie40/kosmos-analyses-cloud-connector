@@ -1,3 +1,4 @@
+// build +unit
 package config
 
 import (

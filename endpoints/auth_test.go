@@ -1,3 +1,4 @@
+// build +unit
 package endpoints
 
 import (
