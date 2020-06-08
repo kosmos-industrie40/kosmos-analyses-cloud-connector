@@ -47,7 +47,7 @@ The configuration of the application will be made through two configuration file
 In the next three sections will be explain the important configuration parameter.
 
 ### CLI-Flags
-In this section the command line parameter will be displayed. Flags which are created by the logging tool `klog` will not be
+In this section the command line parameters will be displayed. Flags which are created by the logging tool `klog` will not be
 acknowledge in this chapter.
 
 | flag | default value | description |
