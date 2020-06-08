@@ -7,5 +7,5 @@ import (
 type Ready struct{}
 
 func (re Ready) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(501)
+	w.WriteHeader(200)
 }
