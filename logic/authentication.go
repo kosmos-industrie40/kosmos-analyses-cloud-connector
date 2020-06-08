@@ -23,13 +23,8 @@ func (a Auth) Login(user, password string) (string, error) {
 	//TODO check against user list (example LDAP)
 
 	token := strings.Split(uuid.New().URN(), ":")
-	var columns []string
-	columns = append(columns, "token")
-	columns = append(columns, "name")
-
-	var data []interface{}
-	data = append(data, token[2])
-	data = append(data, user)
+	columns := []string{"token", "name"}
+	data := []interface{}{token[2], user}
 
 	err := a.db.Insert("token", columns, data)
 
@@ -38,19 +33,15 @@ func (a Auth) Login(user, password string) (string, error) {
 }
 
 func (a Auth) User(token string) (string, error) {
-	var parameterValue []interface{}
-	parameterValue = append(parameterValue, token)
+	parameterValue := []interface{}{token}
 
-	var para []string
-	para = append(para, "token")
+	para := []string{"token"}
 
 	var value string
 	var inVal interface{} = value
-	var val []*interface{}
-	val = append(val, &inVal)
+	val := []*interface{}{&inVal}
 
-	var columns []string
-	columns = append(columns, "name")
+	columns := []string{"name"}
 
 	err := a.db.Query("token", columns, para, val, parameterValue)
 	klog.Infof("user is: %v", inVal)
@@ -66,11 +57,8 @@ func (a Auth) User(token string) (string, error) {
 }
 
 func (a Auth) Logout(token string) error {
-	var parameter []string
-	var paramValue []interface{}
-
-	parameter = append(parameter, "token")
-	paramValue = append(paramValue, token)
+	parameter := []string{"token"}
+	paramValue := []interface{}{token}
 
 	return a.db.Delete("token", parameter, paramValue)
 }
