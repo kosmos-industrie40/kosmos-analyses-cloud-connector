@@ -36,7 +36,10 @@ The following command gives an example to create the database tables.
 ```bash
 psql -h <host> -d <database> -U <database user> <createDatebase.sql
 ```
-You have change the variables host, database and database user with the specific values for your database connection.
+The following variables has to be set to you specific deployment:
+- host
+- database
+- database
 
 ## Test
 We have created an extra file, on which all the endpoints are checked by using extra commands. Please checkout
