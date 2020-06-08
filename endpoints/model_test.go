@@ -89,21 +89,23 @@ func TestModelUpdate(t *testing.T) {
 		},
 	}
 
-	for _, test := range tstCases {
-		req, err := http.NewRequest("PUT", test.Path, strings.NewReader(test.Data))
-		if err != nil {
-			t.Fatal(err)
+	t.Run("test model update", func(t *testing.T) {
+		for _, test := range tstCases {
+			req, err := http.NewRequest("PUT", test.Path, strings.NewReader(test.Data))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("token", "abc")
+
+			rr := httptest.NewRecorder()
+			model.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != test.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
+			}
+
 		}
-		req.Header.Set("token", "abc")
-
-		rr := httptest.NewRecorder()
-		model.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != test.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
-		}
-
-	}
+	})
 }
 
 func TestModelGet(t *testing.T) {
@@ -153,36 +155,38 @@ func TestModelGet(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		req, err := http.NewRequest("GET", test.Path, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-		req.Header.Set("token", "abc")
-
-		rr := httptest.NewRecorder()
-		model.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != test.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
-		}
-
-		if len(test.Expected) == 0 {
-			if "" != rr.Body.String() {
-				t.Errorf("handler returnes wrong body response: got %s want %s", rr.Body.String(), "")
+	t.Run("test model receive", func(t *testing.T) {
+		for _, test := range testCases {
+			req, err := http.NewRequest("GET", test.Path, nil)
+			if err != nil {
+				t.Fatal(err)
 			}
-			continue
-		}
+			req.Header.Set("token", "abc")
 
-		ex, err := json.Marshal(test.Expected)
-		if err != nil {
-			t.Fatal(err)
-		}
+			rr := httptest.NewRecorder()
+			model.ServeHTTP(rr, req)
 
-		if string(ex) != rr.Body.String() {
-			t.Errorf("handler returnes wrong body response: got %s want %s", rr.Body.String(), string(ex))
+			if status := rr.Code; status != test.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
+			}
+
+			if len(test.Expected) == 0 {
+				if "" != rr.Body.String() {
+					t.Errorf("handler returnes wrong body response: got %s want %s", rr.Body.String(), "")
+				}
+				continue
+			}
+
+			ex, err := json.Marshal(test.Expected)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if string(ex) != rr.Body.String() {
+				t.Errorf("handler returnes wrong body response: got %s want %s", rr.Body.String(), string(ex))
+			}
 		}
-	}
+	})
 }
 
 func TestModelAuth(t *testing.T) {
@@ -204,21 +208,23 @@ func TestModelAuth(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		req, err := http.NewRequest("GET", "/model", nil)
-		if err != nil {
-			t.Fatal(err)
+	t.Run("test model user authentication", func(t *testing.T) {
+		for _, test := range testCases {
+			req, err := http.NewRequest("GET", "/model", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("token", test.Token)
+
+			rr := httptest.NewRecorder()
+
+			model.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != test.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, 405)
+			}
 		}
-		req.Header.Set("token", test.Token)
-
-		rr := httptest.NewRecorder()
-
-		model.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != test.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, 405)
-		}
-	}
+	})
 }
 
 func TestModelDefaultMethodModel(t *testing.T) {
@@ -226,20 +232,23 @@ func TestModelDefaultMethodModel(t *testing.T) {
 		"POST",
 		"OPTIONS",
 	}
-	for _, method := range methods {
-		req, err := http.NewRequest(method, "/model", nil)
-		if err != nil {
-			t.Fatal(err)
+
+	t.Run("test model unsupported http method", func(t *testing.T) {
+		for _, method := range methods {
+			req, err := http.NewRequest(method, "/model", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("token", "abc")
+
+			rr := httptest.NewRecorder()
+
+			model := Model{Auth: AuthTest{}}
+			model.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != 405 {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, 405)
+			}
 		}
-		req.Header.Set("token", "abc")
-
-		rr := httptest.NewRecorder()
-
-		model := Model{Auth: AuthTest{}}
-		model.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != 405 {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, 405)
-		}
-	}
+	})
 }

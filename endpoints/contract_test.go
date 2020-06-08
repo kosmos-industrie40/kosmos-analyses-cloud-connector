@@ -94,22 +94,24 @@ func TestContractPost(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		req, err := http.NewRequest("POST", test.Path, strings.NewReader(test.Data))
-		if err != nil {
-			t.Fatal(err)
+	t.Run("test contract upload", func(t *testing.T) {
+		for _, test := range testCases {
+			req, err := http.NewRequest("POST", test.Path, strings.NewReader(test.Data))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("token", "abc")
+
+			rr := httptest.NewRecorder()
+
+			contract.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != test.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
+			}
+
 		}
-		req.Header.Set("token", "abc")
-
-		rr := httptest.NewRecorder()
-
-		contract.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != test.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
-		}
-
-	}
+	})
 }
 
 func TestContractGetDelete(t *testing.T) {
@@ -227,27 +229,29 @@ func TestContractGetDelete(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		getAllContracts = test.variable
-		req, err := http.NewRequest(test.Method, test.Path, nil)
-		if err != nil {
-			t.Fatal(err)
+	t.Run("test contract get and delete", func(t *testing.T) {
+		for _, test := range testCases {
+			getAllContracts = test.variable
+			req, err := http.NewRequest(test.Method, test.Path, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("token", "abc")
+
+			rr := httptest.NewRecorder()
+
+			contract.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != test.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
+			}
+
+			if rr.Body.String() != test.Data {
+				t.Errorf("%v\thandler returnes wrong data in body: got %s want %s", test, rr.Body.String(), test.Data)
+			}
+
 		}
-		req.Header.Set("token", "abc")
-
-		rr := httptest.NewRecorder()
-
-		contract.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != test.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
-		}
-
-		if rr.Body.String() != test.Data {
-			t.Errorf("%v\thandler returnes wrong data in body: got %s want %s", test, rr.Body.String(), test.Data)
-		}
-
-	}
+	})
 
 }
 
@@ -275,18 +279,20 @@ func TestContractUserAuth(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, test := range testCases {
-		req.Header.Set("token", test.Token)
+	t.Run("test contract user authentication", func(t *testing.T) {
+		for _, test := range testCases {
+			req.Header.Set("token", test.Token)
 
-		rr := httptest.NewRecorder()
+			rr := httptest.NewRecorder()
 
-		contract.ServeHTTP(rr, req)
+			contract.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != test.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
+			if status := rr.Code; status != test.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
+			}
+
 		}
-
-	}
+	})
 }
 
 func TestContractDefault(t *testing.T) {
@@ -296,21 +302,23 @@ func TestContractDefault(t *testing.T) {
 		"TRACE",
 	}
 
-	for _, test := range options {
-		req, err := http.NewRequest(test, "/contract", nil)
-		if err != nil {
-			t.Fatal(err)
+	t.Run("test contract unsupported http method", func(t *testing.T) {
+		for _, test := range options {
+			req, err := http.NewRequest(test, "/contract", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req.Header.Set("token", "abc")
+
+			rr := httptest.NewRecorder()
+
+			contract.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != 405 {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, 405)
+			}
+
 		}
-
-		req.Header.Set("token", "abc")
-
-		rr := httptest.NewRecorder()
-
-		contract.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != 405 {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, 405)
-		}
-
-	}
+	})
 }

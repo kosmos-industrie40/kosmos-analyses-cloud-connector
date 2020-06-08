@@ -62,26 +62,29 @@ func TestUsedMethodWithToken(t *testing.T) {
 	}
 
 	auth := Auth{Auth: AuthTest{}}
-	for _, tests := range testsGetUser {
-		req, err := http.NewRequest(tests.Method, "/auth", nil)
-		if err != nil {
-			t.Fatal(err)
+
+	t.Run("user test actions on authenticated user", func(t *testing.T) {
+		for _, tests := range testsGetUser {
+			req, err := http.NewRequest(tests.Method, "/auth", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("token", tests.Token)
+
+			rr := httptest.NewRecorder()
+
+			auth.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != tests.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, tests.StatusCode)
+			}
+
+			if rr.Body.String() != tests.Expected {
+				t.Errorf("handler return wrong return string: get %s want %s", rr.Body.String(), tests.Expected)
+			}
+
 		}
-		req.Header.Set("token", tests.Token)
-
-		rr := httptest.NewRecorder()
-
-		auth.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != tests.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, tests.StatusCode)
-		}
-
-		if rr.Body.String() != tests.Expected {
-			t.Errorf("handler return wrong return string: get %s want %s", rr.Body.String(), tests.Expected)
-		}
-
-	}
+	})
 }
 
 func TestDefaultUnexpectedHttMethod(t *testing.T) {
@@ -100,9 +103,11 @@ func TestDefaultUnexpectedHttMethod(t *testing.T) {
 		auth := Auth{Auth: AuthTest{}}
 		auth.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != 405 {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, 405)
-		}
+		t.Run("test user unsupported http methods", func(t *testing.T) {
+			if status := rr.Code; status != 405 {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, 405)
+			}
+		})
 	}
 }
 
@@ -139,13 +144,15 @@ func TestLogin(t *testing.T) {
 
 		auth.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != tests.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, tests.StatusCode)
-		}
+		t.Run("test user login", func(t *testing.T) {
+			if status := rr.Code; status != tests.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, tests.StatusCode)
+			}
 
-		if rr.Body.String() != tests.Expected {
-			t.Errorf("handler return wrong return string: get %s want %s", rr.Body.String(), tests.Expected)
-		}
+			if rr.Body.String() != tests.Expected {
+				t.Errorf("handler return wrong return string: get %s want %s", rr.Body.String(), tests.Expected)
+			}
+		})
 
 	}
 }

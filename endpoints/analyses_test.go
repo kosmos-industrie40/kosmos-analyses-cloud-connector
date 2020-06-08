@@ -82,22 +82,24 @@ func TestAnalysesPost(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		req, err := http.NewRequest("POST", test.Path, strings.NewReader(test.Data))
-		if err != nil {
-			t.Fatal(err)
+	t.Run("test analyses post cases", func(t *testing.T) {
+		for _, test := range testCases {
+			req, err := http.NewRequest("POST", test.Path, strings.NewReader(test.Data))
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("token", "abc")
+
+			rr := httptest.NewRecorder()
+
+			analyses.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != test.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
+			}
+
 		}
-		req.Header.Set("token", "abc")
-
-		rr := httptest.NewRecorder()
-
-		analyses.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != test.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
-		}
-
-	}
+	})
 }
 
 func TestAnalysesGet(t *testing.T) {
@@ -168,26 +170,28 @@ func TestAnalysesGet(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		req, err := http.NewRequest("GET", test.Path, nil)
-		if err != nil {
-			t.Fatal(err)
+	t.Run("test analyses get cases", func(t *testing.T) {
+		for _, test := range testCases {
+			req, err := http.NewRequest("GET", test.Path, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			req.Header.Set("token", "abc")
+
+			rr := httptest.NewRecorder()
+
+			analyses.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != test.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
+			}
+
+			if rr.Body.String() != test.Data {
+				t.Errorf("%v\thandler returnes wrong data in body: got %s want %s", test, rr.Body.String(), test.Data)
+			}
+
 		}
-		req.Header.Set("token", "abc")
-
-		rr := httptest.NewRecorder()
-
-		analyses.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != test.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
-		}
-
-		if rr.Body.String() != test.Data {
-			t.Errorf("%v\thandler returnes wrong data in body: got %s want %s", test, rr.Body.String(), test.Data)
-		}
-
-	}
+	})
 
 }
 
@@ -215,18 +219,20 @@ func TestAnalysesUserAuth(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, test := range testCases {
-		req.Header.Set("token", test.Token)
+	t.Run("test analyses user authentication", func(t *testing.T) {
+		for _, test := range testCases {
+			req.Header.Set("token", test.Token)
 
-		rr := httptest.NewRecorder()
+			rr := httptest.NewRecorder()
 
-		analyses.ServeHTTP(rr, req)
+			analyses.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != test.StatusCode {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
+			if status := rr.Code; status != test.StatusCode {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, test.StatusCode)
+			}
+
 		}
-
-	}
+	})
 }
 
 func TestAnalysesDefault(t *testing.T) {
@@ -236,21 +242,23 @@ func TestAnalysesDefault(t *testing.T) {
 		"TRACE",
 	}
 
-	for _, test := range options {
-		req, err := http.NewRequest(test, "/analyses", nil)
-		if err != nil {
-			t.Fatal(err)
+	t.Run("test default http methods", func(t *testing.T) {
+		for _, test := range options {
+			req, err := http.NewRequest(test, "/analyses", nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req.Header.Set("token", "abc")
+
+			rr := httptest.NewRecorder()
+
+			analyses.ServeHTTP(rr, req)
+
+			if status := rr.Code; status != 405 {
+				t.Errorf("handler returnes wrong status code: got %d want %d", status, 405)
+			}
+
 		}
-
-		req.Header.Set("token", "abc")
-
-		rr := httptest.NewRecorder()
-
-		analyses.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != 405 {
-			t.Errorf("handler returnes wrong status code: got %d want %d", status, 405)
-		}
-
-	}
+	})
 }
