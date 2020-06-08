@@ -47,7 +47,7 @@ the [test file](test.md).
 
 ## Configuration
 The configuration of the application will be made through two configuration files and command line flags. 
-In the next three sections will be explain the important configuration parameter.
+In the next three sections will be explain the important configuration parameters.
 
 ### CLI-Flags
 In this section the command line parameters will be displayed. Flags which are created by the logging tool `klog` will not be
