@@ -22,6 +22,14 @@ lint:
   script:
     - make lint
 
+docker-lint:
+        image: hadolint/hadolint:latest-debian
+        stage: lint
+        tags:
+        - shared
+        script:
+        - hadolint ${DOCKERFILE_PATH: -Dockerfile}
+
 unit_test:
   stage: test
   tags:
