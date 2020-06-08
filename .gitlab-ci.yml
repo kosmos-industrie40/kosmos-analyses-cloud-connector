@@ -62,7 +62,7 @@ container_build:
 
     if [ -z $CI_COMMIT_TAG ]; then
         version=$CI_COMMIT_SHA
-    elif
+    else
         version=$CI_COMMIT_TAG
     fi
 
