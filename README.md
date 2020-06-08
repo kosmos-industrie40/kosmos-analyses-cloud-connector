@@ -67,7 +67,7 @@ found in the `examplePassword.yaml` file.
 | database.password | is the password for the postgresql database connection |
 
 ### Configuration
-The configuration file will be configure the system without including an user or an password. An example configuration
+The configuration file will be used to configure the system without including credentials. An example configuration
 can be found in the `exampleConfiguration.yaml` file.
 
 | parameter | description |
