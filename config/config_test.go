@@ -17,21 +17,19 @@ func TestConfigPasswords(t *testing.T) {
 	password.Mqtt.Password = "pppp"
 	password.Mqtt.User = "asdf"
 
-	t.Run("ConfigPassword", func(t *testing.T) {
-		bytes, err := yaml.Marshal(password)
-		var conf models.Password
-		if err != nil {
-			t.Errorf("could not parse configuration to yaml: %v\n", err)
-		}
+	bytes, err := yaml.Marshal(password)
+	var conf models.Password
+	if err != nil {
+		t.Errorf("could not parse configuration to yaml: %v\n", err)
+	}
 
-		if err := handleConfiguration(strings.NewReader(string(bytes)), &conf); err != nil {
-			t.Errorf("could not unparse from yaml to configuration")
-		}
+	if err := handleConfiguration(strings.NewReader(string(bytes)), &conf); err != nil {
+		t.Errorf("could not unparse from yaml to configuration")
+	}
 
-		if conf != password {
-			t.Errorf("conf != con\n\t%v\n\t%v\n", password, conf)
-		}
-	})
+	if conf != password {
+		t.Errorf("conf != con\n\t%v\n\t%v\n", password, conf)
+	}
 }
 
 func TestConfigConfiguration(t *testing.T) {
@@ -44,19 +42,17 @@ func TestConfigConfiguration(t *testing.T) {
 	configuration.Webserver.Address = "127.0.0.1"
 	configuration.Webserver.Port = 8080
 
-	t.Run("ConfigConfiguration", func(t *testing.T) {
-		bytes, err := yaml.Marshal(configuration)
-		var conf models.Configurations
-		if err != nil {
-			t.Errorf("could not parse configuration to yaml: %v\n", err)
-		}
+	bytes, err := yaml.Marshal(configuration)
+	var conf models.Configurations
+	if err != nil {
+		t.Errorf("could not parse configuration to yaml: %v\n", err)
+	}
 
-		if err := handleConfiguration(strings.NewReader(string(bytes)), &conf); err != nil {
-			t.Errorf("could not unparse from yaml to configuration")
-		}
+	if err := handleConfiguration(strings.NewReader(string(bytes)), &conf); err != nil {
+		t.Errorf("could not unparse from yaml to configuration")
+	}
 
-		if conf != configuration {
-			t.Errorf("conf != con\n\t%v\n\t%v\n", configuration, conf)
-		}
-	})
+	if conf != configuration {
+		t.Errorf("conf != con\n\t%v\n\t%v\n", configuration, conf)
+	}
 }
