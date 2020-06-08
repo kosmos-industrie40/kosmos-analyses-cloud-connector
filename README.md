@@ -61,7 +61,7 @@ found in the `examplePassword.yaml` file.
 
 |parameter|description|
 | ------- | --------- |
-| mqtt.user | is the user name of the mqtt user which is used by the mqtt connection |
+| mqtt.user | is the user name of the mqtt user which is used for the mqtt connection |
 | mqtt.password | is the password which is used by the mqtt.user for the mqtt connection |
 | database.user | is the user for the postgresql database connection |
 | database.password | is the password for the postgresql database connection |
