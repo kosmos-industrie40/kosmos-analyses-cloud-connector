@@ -1,0 +1,102 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+        name: connector-cloud-edge-configuration
+        labels:
+                type: connector
+                app: connector-cloud-edge
+data:
+        configruation.yaml: |
+                webserver:
+                        address: 127.0.0.1
+                        port: 8080
+                database:
+                        database: connector
+                        port: 5432
+                        address: halting-vulture-postgresql.svc.cluster.local
+                mqtt:
+                        address: mosquitto-service.default.svc.cluster.local
+                        port: 1883
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+        name: connector-cloud-edge-password
+        labels:
+                type: connector
+                app: connector-cloud-edge
+        data:
+                password.yaml: |
+                        mqtt:
+                                user: kosmos
+                                password: kosmos
+                        database:
+                                user: kosmos
+                                password: kosmos
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: connector-cloud-edge
+        labels:
+                app: connector-cloud-edge
+                type: connector
+spec:
+        replicas: 1
+        template:
+                metadata:
+                        labels:
+                                app: connector-cloud-edge
+                                type: connector
+                spec:
+                        imagePullSecrets:
+                                - name: regcrd
+                        containers:
+                                - name: executor
+                                  imagePullPolicy: IfNotPresent
+                                  ports:
+                                          containerPort: 8080
+                                          hostPort: 8080
+                                          protocol: TCP
+                                  image: |
+                                        harbor.kosmos.idcp.inovex.io/analyse-platform-kosmos/edge-cloud-connector
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+        name: connector-cloud-edge
+        labels:
+                type: connector
+                app: connector-cloud-edge
+spec:
+        ports:
+                nodePort: 8080
+                port: 8080
+                protocol: TCP
+        selector:
+                type: connector
+                app: connector-cloud-edge
+        type: ClusterIP
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+        name: connector-cloud-edge
+        labels:
+                app: connector-cloud-edge
+                type: connector
+spec:
+        endpoints:
+                - interval: 15s
+                  port: 8080
+                  path: "/metrics"
+                  scheme: "HTTP"
+        selector:
+                matchLabels:
+                        app: connector-cloud-edge
+                        type: connector
