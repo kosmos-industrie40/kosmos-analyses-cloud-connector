@@ -60,11 +60,22 @@ container_build:
   tags:
     - shared
   cache: {}
+  before_script:
+   - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
   script: |
-    echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    cat /kaniko/.docker/config.json
+    if [ -z $CI_REGISTRY ] || [ -z $CI_REGISTRY_IMAGE ]; then
+        echo "missing parameters please add CI_REGISTRY and/or CI_REGISTRY_IMAGE"
+        exit 1
+    fi
+
+    if [ -z $CI_COMMIT_TAG ]; then
+        version=$CI_COMMIT_SHA
+    elif
+        version=$CI_COMMIT_TAG
+    fi
+
     /kaniko/executor \
       --context $CI_PROJECT_DIR \
       --dockerfile $CI_PROJECT_DIR/Dockerfile \
-      --destination $CI_REGISTRY/$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA \
+      --destination $CI_REGISTRY/$CI_REGISTRY_IMAGE:$version \
       --cache=true # Remove to disable caching
