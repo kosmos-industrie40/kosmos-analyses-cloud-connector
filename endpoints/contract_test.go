@@ -16,9 +16,9 @@ import (
 // using this varibale to control the behavior of the GetAllContracts function
 var getAllContracts string = "not error"
 
-type cont struct{}
+type testContracts struct{}
 
-func (c cont) GetContract(id string) (models.Contract, error) {
+func (c testContracts) GetContract(id string) (models.Contract, error) {
 	switch id {
 	default:
 		return models.Contract{}, nil
@@ -27,7 +27,7 @@ func (c cont) GetContract(id string) (models.Contract, error) {
 	}
 }
 
-func (c cont) GetAllContracts() ([]string, error) {
+func (c testContracts) GetAllContracts() ([]string, error) {
 	switch getAllContracts {
 	default:
 		return nil, nil
@@ -42,7 +42,7 @@ func (c cont) GetAllContracts() ([]string, error) {
 	}
 }
 
-func (c cont) InsertContract(data models.Contract) error {
+func (c testContracts) InsertContract(data models.Contract) error {
 	switch data.ContractId {
 	case "error":
 		return fmt.Errorf("error")
@@ -51,9 +51,9 @@ func (c cont) InsertContract(data models.Contract) error {
 	}
 }
 
-func (c cont) Contract(database.Postgres) {}
+func (c testContracts) Contract(database.Postgres) {}
 
-func (c cont) DeleteContract(id string) error {
+func (c testContracts) DeleteContract(id string) error {
 	switch id {
 	default:
 		return nil
@@ -62,7 +62,7 @@ func (c cont) DeleteContract(id string) error {
 	}
 }
 
-var contract Contract = Contract{Auth: AuthTest{}, Contract: cont{}}
+var contract Contract = Contract{Auth: AuthTest{}, Contract: testContracts{}}
 
 func TestContractPost(t *testing.T) {
 	errorCase := models.Contract{ContractId: "error"}

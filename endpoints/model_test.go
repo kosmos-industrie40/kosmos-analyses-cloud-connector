@@ -13,11 +13,11 @@ import (
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
 )
 
-type mod struct{}
+type testModel struct{}
 
-func (m mod) Model(_ database.Postgres) {}
+func (m testModel) Model(_ database.Postgres) {}
 
-func (m mod) GetModel(contract string) ([]models.Model, error) {
+func (m testModel) GetModel(contract string) ([]models.Model, error) {
 	switch contract {
 	default:
 		return nil, nil
@@ -48,14 +48,14 @@ func (m mod) GetModel(contract string) ([]models.Model, error) {
 	}
 }
 
-func (m mod) UpdateModel(contract string, model models.UpdateModelState) error {
+func (m testModel) UpdateModel(contract string, model models.UpdateModelState) error {
 	if contract == "error" {
 		return fmt.Errorf("error")
 	}
 	return nil
 }
 
-var model Model = Model{Auth: AuthTest{}, Model: mod{}}
+var model Model = Model{Auth: AuthTest{}, Model: testModel{}}
 
 func TestModelUpdate(t *testing.T) {
 	mod, err := json.Marshal(models.UpdateModelState{})

@@ -14,11 +14,11 @@ import (
 
 // using this varibale to control the behavior of the GetAllAnalysess function
 
-type ana struct{}
+type testAnalysis struct{}
 
-func (a ana) Analyses(d database.Postgres) {}
+func (a testAnalysis) Analyses(d database.Postgres) {}
 
-func (a ana) InsertResult(id, contract, sensor string, data []models.UploadResult) error {
+func (a testAnalysis) InsertResult(id, contract, sensor string, data []models.UploadResult) error {
 	switch id {
 	case "error":
 		return fmt.Errorf("error")
@@ -27,7 +27,7 @@ func (a ana) InsertResult(id, contract, sensor string, data []models.UploadResul
 	}
 }
 
-func (a ana) GetSpecificResult(id, contract string) ([]byte, error) {
+func (a testAnalysis) GetSpecificResult(id, contract string) ([]byte, error) {
 	switch id {
 	case "error":
 		return nil, fmt.Errorf("error")
@@ -38,7 +38,7 @@ func (a ana) GetSpecificResult(id, contract string) ([]byte, error) {
 	}
 }
 
-func (a ana) GetResultSet(id string, query map[string][]string) ([]models.ResultList, error) {
+func (a testAnalysis) GetResultSet(id string, query map[string][]string) ([]models.ResultList, error) {
 	switch id {
 	case "error":
 		return nil, fmt.Errorf("error")
@@ -51,7 +51,7 @@ func (a ana) GetResultSet(id string, query map[string][]string) ([]models.Result
 	}
 }
 
-var analyses Analyses = Analyses{Auth: AuthTest{}, Analyses: ana{}}
+var analyses Analyses = Analyses{Auth: AuthTest{}, Analyses: testAnalysis{}}
 
 func TestAnalysesPost(t *testing.T) {
 
