@@ -28,7 +28,7 @@ docker-lint:
         tags:
         - shared
         script:
-        - hadolint ${DOCKERFILE_PATH: -Dockerfile}
+        - hadolint Dockerfile
 
 unit_test:
   stage: test
