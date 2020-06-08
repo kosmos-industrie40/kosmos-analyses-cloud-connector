@@ -64,26 +64,19 @@ func (a AnalysesInitial) GetResultSet(contractId string, queryParams map[string]
 	end := tim.Time{}
 
 	for parameter, value := range queryParams {
+		if len(value) != 1 {
+			return nil, fmt.Errorf("unexpected length of the value paramter %s has %d attributes", parameter, len(value))
+		}
 		switch parameter {
 		default:
 			return nil, fmt.Errorf("unexpected query parameter found with: %s\n", parameter)
 		case "machine":
-			if len(value) != 1 {
-				return nil, fmt.Errorf("unexpected length of the value paramter %s has %d attributes", parameter, len(value))
-			}
 			parameters = append(parameters, "machine")
 			parameterValue = append(parameterValue, value[0])
 		case "sensor":
-			if len(value) != 1 {
-				return nil, fmt.Errorf("unexpected length of the value paramter %s has %d attributes", parameter, len(value))
-			}
 			parameters = append(parameters, "sensor")
 			parameterValue = append(parameterValue, value[0])
 		case "start":
-			if len(value) != 1 {
-				return nil, fmt.Errorf("unexpected length of the value paramter %s has %d attributes", parameter, len(value))
-			}
-
 			parsedValue, err := strconv.ParseInt(value[0], 10, 64)
 			if err != nil {
 				return nil, err
@@ -91,9 +84,6 @@ func (a AnalysesInitial) GetResultSet(contractId string, queryParams map[string]
 
 			start = tim.Unix(parsedValue, 0)
 		case "end":
-			if len(value) != 1 {
-				return nil, fmt.Errorf("unexpected length of the value paramter %s has %d attributes", parameter, len(value))
-			}
 			parsedValue, err := strconv.ParseInt(value[0], 10, 64)
 			if err != nil {
 				return nil, err
