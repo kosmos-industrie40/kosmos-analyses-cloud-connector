@@ -45,7 +45,6 @@ metadata:
                 app: connector-cloud-edge
                 type: connector
 spec:
-        replicas: 1
         template:
                 metadata:
                         labels:
@@ -56,13 +55,12 @@ spec:
                                 - name: regcrd
                         containers:
                                 - name: executor
-                                  imagePullPolicy: IfNotPresent
                                   ports:
                                           containerPort: 8080
                                           hostPort: 8080
                                           protocol: TCP
                                   image: |
-                                        harbor.kosmos.idcp.inovex.io/analyse-platform-kosmos/edge-cloud-connector
+                                          harbor.kosmos.idcp.inovex.io/analyse-platform-kosmos/edge-cloud-connector:v0.0.2
 
 ---
 apiVersion: v1
