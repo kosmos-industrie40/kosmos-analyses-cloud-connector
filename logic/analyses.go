@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	tim "time"
+	"time"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
@@ -28,7 +28,7 @@ func (a AnalysesInitial) InsertResult(contract string, machine string, sensor st
 			return err
 		}
 
-		date := tim.Unix(res.Date, 0)
+		date := time.Unix(res.Date, 0)
 
 		if err := a.db.Insert("analyse_result", []string{"contract", "machine", "sensor", "time", "result"}, []interface{}{contract, machine, sensor, date, curJson}); err != nil {
 			return err
@@ -60,8 +60,8 @@ func (a AnalysesInitial) GetSpecificResult(contractId string, resultId string) (
 func (a AnalysesInitial) GetResultSet(contractId string, queryParams map[string][]string) ([]models.ResultList, error) {
 	parameters := []string{"contract"}
 	parameterValue := []interface{}{contractId}
-	start := tim.Time{}
-	end := tim.Time{}
+	start := time.Time{}
+	end := time.Time{}
 
 	for parameter, value := range queryParams {
 		if len(value) != 1 {
@@ -82,22 +82,22 @@ func (a AnalysesInitial) GetResultSet(contractId string, queryParams map[string]
 				return nil, err
 			}
 
-			start = tim.Unix(parsedValue, 0)
+			start = time.Unix(parsedValue, 0)
 		case "end":
 			parsedValue, err := strconv.ParseInt(value[0], 10, 64)
 			if err != nil {
 				return nil, err
 			}
 
-			end = tim.Unix(parsedValue, 0)
+			end = time.Unix(parsedValue, 0)
 		}
 	}
 
-	var time []tim.Time
+	var timeStamp []time.Time
 	var machine []string
 	var id []int64
 	var cTime, cMachine, cId interface{}
-	cTime = time
+	cTime = timeStamp
 	cMachine = machine
 	cId = id
 	values := []*interface{}{
@@ -110,17 +110,17 @@ func (a AnalysesInitial) GetResultSet(contractId string, queryParams map[string]
 	if err := a.db.QueryTime("analyse_result", []string{"id", "time", "machine"}, parameters, "time", start, end, values, parameterValue); err != nil {
 		return nil, err
 	}
-	time = cTime.([]tim.Time)
+	timeStamp = cTime.([]time.Time)
 	machine = cMachine.([]string)
 	id = cId.([]int64)
 
-	if len(time) != len(machine) && len(machine) != len(id) {
+	if len(timeStamp) != len(machine) && len(machine) != len(id) {
 		return nil, fmt.Errorf("the length of the array of the database result has not the same size")
 	}
 
 	var ret []models.ResultList
-	for i := 0; i < len(time); i++ {
-		date := time[i]
+	for i := 0; i < len(timeStamp); i++ {
+		date := timeStamp[i]
 		ret = append(ret, models.ResultList{
 			Id:      id[i],
 			Machine: machine[i],
