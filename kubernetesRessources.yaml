@@ -45,6 +45,10 @@ metadata:
     app: connector-cloud-edge
     type: connector
 spec:
+  selector:
+    matchLabels:
+      app: connector-cloud-edge
+      type: connector
   template:
     metadata:
       labels:
@@ -56,7 +60,7 @@ spec:
       containers:
         - name: executor
           ports:
-            containerPort: 8080
+          - containerPort: 8080
             hostPort: 8080
             protocol: TCP
           image: |
@@ -72,7 +76,7 @@ metadata:
     app: connector-cloud-edge
 spec:
   ports:
-    port: 8080
+  - port: 8080
     protocol: TCP
   selector:
     type: connector
