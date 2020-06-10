@@ -63,7 +63,6 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		token := models.Token{Token: tok}
-		w.WriteHeader(200)
 		sBody, err := json.Marshal(token)
 		if err != nil {
 			klog.Errorf("could not marshal token: %v\n", err)

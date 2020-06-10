@@ -54,7 +54,6 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if len(contracts) == 0 {
-				w.WriteHeader(200)
 				return
 			}
 
@@ -89,7 +88,6 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(500)
 				return
 			}
-			w.WriteHeader(200)
 		}
 	case "DELETE":
 		splitted := strings.Split(r.URL.Path, "/")

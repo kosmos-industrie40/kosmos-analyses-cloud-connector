@@ -71,7 +71,6 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if string(retValue) == "null" {
-				w.WriteHeader(200)
 				return
 			}
 
