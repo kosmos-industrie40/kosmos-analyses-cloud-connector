@@ -20,6 +20,7 @@ type Model struct {
 func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	token := r.Header.Get("token")
 
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/2
 	if token == "" {
 		w.WriteHeader(401)
 		return

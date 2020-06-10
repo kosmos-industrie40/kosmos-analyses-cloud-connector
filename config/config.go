@@ -8,6 +8,7 @@ import (
 	"k8s.io/klog"
 )
 
+//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/3
 func ParseConfiguration(path string, conf interface{}) error {
 	file, err := os.Open(path)
 	if err != nil {

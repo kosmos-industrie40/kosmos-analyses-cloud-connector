@@ -50,6 +50,7 @@ type testCases struct {
 }
 
 func TestUsedMethodWithToken(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	testsGetUser := []testCases{
 		{Method: "GET", Token: "", StatusCode: 204, Expected: ""},
 		{Method: "GET", Token: "error", StatusCode: 500, Expected: ""},
@@ -88,6 +89,7 @@ func TestUsedMethodWithToken(t *testing.T) {
 }
 
 func TestDefaultUnexpectedHttMethod(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	methods := []string{
 		"PUT",
 		"OPTIONS",
@@ -112,6 +114,7 @@ func TestDefaultUnexpectedHttMethod(t *testing.T) {
 }
 
 func TestLogin(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	loginUser := []struct {
 		StatusCode int
 		Data       string

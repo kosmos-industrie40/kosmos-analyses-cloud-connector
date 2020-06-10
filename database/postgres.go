@@ -10,6 +10,7 @@ import (
 	"k8s.io/klog"
 )
 
+//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/1
 // Postgres is the type which provides the connection to a postgresql database
 type Postgres struct {
 	db *sql.DB

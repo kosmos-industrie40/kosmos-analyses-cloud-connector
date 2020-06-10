@@ -62,6 +62,7 @@ func TestModelUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(t)
 	}
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	tstCases := []struct {
 		StatusCode int
 		Data       string
@@ -109,6 +110,7 @@ func TestModelUpdate(t *testing.T) {
 }
 
 func TestModelGet(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	testCases := []struct {
 		StatusCode int
 		Expected   []models.Model
@@ -190,6 +192,7 @@ func TestModelGet(t *testing.T) {
 }
 
 func TestModelAuth(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	testCases := []struct {
 		Token      string
 		StatusCode int
@@ -228,6 +231,7 @@ func TestModelAuth(t *testing.T) {
 }
 
 func TestModelDefaultMethodModel(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	methods := []string{
 		"POST",
 		"OPTIONS",

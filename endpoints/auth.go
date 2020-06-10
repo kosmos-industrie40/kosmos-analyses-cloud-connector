@@ -18,6 +18,7 @@ type Auth struct {
 func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
+		//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/2
 		token := r.Header.Get("token")
 		if token == "" {
 			w.WriteHeader(204)

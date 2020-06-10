@@ -55,6 +55,7 @@ var analyses Analyses = Analyses{Auth: AuthTest{}, Analyses: testAnalysis{}}
 
 func TestAnalysesPost(t *testing.T) {
 
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	testCases := []struct {
 		StatusCode int
 		Path       string
@@ -103,6 +104,7 @@ func TestAnalysesPost(t *testing.T) {
 }
 
 func TestAnalysesGet(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	testCases := []struct {
 		StatusCode int
 		Path       string
@@ -196,6 +198,7 @@ func TestAnalysesGet(t *testing.T) {
 }
 
 func TestAnalysesUserAuth(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	testCases := []struct {
 		StatusCode int
 		Token      string
@@ -236,6 +239,7 @@ func TestAnalysesUserAuth(t *testing.T) {
 }
 
 func TestAnalysesDefault(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	options := []string{
 		"OPTIONS",
 		"PUT",

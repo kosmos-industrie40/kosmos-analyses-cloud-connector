@@ -77,6 +77,7 @@ func TestContractPost(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	testCases := []struct {
 		StatusCode int
 		Path       string
@@ -115,6 +116,7 @@ func TestContractPost(t *testing.T) {
 }
 
 func TestContractGetDelete(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	testCases := []struct {
 		StatusCode int
 		Path       string
@@ -256,6 +258,7 @@ func TestContractGetDelete(t *testing.T) {
 }
 
 func TestContractUserAuth(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	testCases := []struct {
 		StatusCode int
 		Token      string
@@ -296,6 +299,7 @@ func TestContractUserAuth(t *testing.T) {
 }
 
 func TestContractDefault(t *testing.T) {
+	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	options := []string{
 		"OPTIONS",
 		"PUT",
