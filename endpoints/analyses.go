@@ -42,7 +42,8 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(405)
 		return
 	case "GET":
-		ur := strings.Split(r.URL.Path, "/")
+		path := strings.TrimRight(r.URL.Path, "/")
+		ur := strings.Split(path, "/")
 		switch len(ur) {
 		default:
 			klog.Errorf("unexpected count of parameters in query: %d\n", len(ur))
@@ -82,49 +83,14 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 
 		case 4:
-			if ur[3] == "" {
-				// same as len(ur) == 2
-				parsedQuery := make(map[string][]string)
-				contractId := ur[2]
-				queryParam := r.URL.Query()
-				for i, v := range queryParam {
-					parsedQuery[i] = v
-				}
-				resSet, err := a.Analyses.GetResultSet(contractId, parsedQuery)
-				if err != nil {
-					klog.Errorf("could not query result set: %v\n", err)
-					w.WriteHeader(500)
-					return
-				}
-
-				retValue, err := json.Marshal(resSet)
-				if err != nil {
-					klog.Errorf("could convert ResultSet to json: %v\n", err)
-					w.WriteHeader(500)
-					return
-				}
-
-				if string(retValue) == "null" {
-					w.WriteHeader(200)
-					return
-				}
-
-				if _, err := w.Write(retValue); err != nil {
-					klog.Errorf("could not write result: %s\n", err)
-					w.WriteHeader(500)
-					return
-				}
-				return
-			} else {
-				ret, err := a.Analyses.GetSpecificResult(ur[2], ur[3])
-				if err != nil {
-					klog.Errorf("could not query specific result: %s\n", err)
-					w.WriteHeader(500)
-				}
-				if _, err := w.Write(ret); err != nil {
-					klog.Errorf("could send result: %s\n", err)
-					w.WriteHeader(500)
-				}
+			ret, err := a.Analyses.GetSpecificResult(ur[2], ur[3])
+			if err != nil {
+				klog.Errorf("could not query specific result: %s\n", err)
+				w.WriteHeader(500)
+			}
+			if _, err := w.Write(ret); err != nil {
+				klog.Errorf("could send result: %s\n", err)
+				w.WriteHeader(500)
 			}
 		}
 	case "POST":

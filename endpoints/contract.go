@@ -39,7 +39,8 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		splitted := strings.Split(r.URL.Path, "/")
+		path := strings.TrimRight(r.URL.Path, "/")
+		splitted := strings.Split(path, "/")
 		switch len(splitted) {
 		default:
 			w.WriteHeader(400)
@@ -70,53 +71,25 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		case 3:
-			if splitted[2] == "" {
-				contracts, err := c.Contract.GetAllContracts()
-				if err != nil {
-					klog.Errorf("could not query all contracts: %s\n", err)
-					w.WriteHeader(500)
-					return
-				}
-
-				if len(contracts) == 0 {
-					w.WriteHeader(200)
-					return
-				}
-
-				res, err := json.Marshal(contracts)
-				if err != nil {
-					klog.Errorf("could not marshal data: %v\n", err)
-					w.WriteHeader(500)
-					return
-				}
-
-				if _, err := w.Write(res); err != nil {
-					w.WriteHeader(500)
-					klog.Errorf("could not send message %v\n", err)
-					return
-				}
-				w.WriteHeader(200)
-			} else {
-				contractId := splitted[2]
-				data, err := c.Contract.GetContract(contractId)
-				if err != nil {
-					klog.Errorf("could not receive contract: %s\n", err)
-					w.WriteHeader(500)
-					return
-				}
-				res, err := json.Marshal(data)
-				if err != nil {
-					klog.Errorf("could not marshal contract: %v\n", err)
-					w.WriteHeader(500)
-					return
-				}
-				if _, err := w.Write(res); err != nil {
-					klog.Errorf("could not return result: %v\n", err)
-					w.WriteHeader(500)
-					return
-				}
-				w.WriteHeader(200)
+			contractId := splitted[2]
+			data, err := c.Contract.GetContract(contractId)
+			if err != nil {
+				klog.Errorf("could not receive contract: %s\n", err)
+				w.WriteHeader(500)
+				return
 			}
+			res, err := json.Marshal(data)
+			if err != nil {
+				klog.Errorf("could not marshal contract: %v\n", err)
+				w.WriteHeader(500)
+				return
+			}
+			if _, err := w.Write(res); err != nil {
+				klog.Errorf("could not return result: %v\n", err)
+				w.WriteHeader(500)
+				return
+			}
+			w.WriteHeader(200)
 		}
 	case "DELETE":
 		splitted := strings.Split(r.URL.Path, "/")

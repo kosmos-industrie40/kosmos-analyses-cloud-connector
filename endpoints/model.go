@@ -42,7 +42,8 @@ func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(405)
 		return
 	case "GET":
-		ur := strings.Split(r.URL.Path, "/")
+		path := strings.TrimRight(r.URL.Path, "/")
+		ur := strings.Split(path, "/")
 		if len(ur) != 3 {
 			w.WriteHeader(400)
 			return
@@ -74,7 +75,8 @@ func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	case "PUT":
 
-		ur := strings.Split(r.URL.Path, "/")
+		path := strings.TrimRight(r.URL.Path, "/")
+		ur := strings.Split(path, "/")
 		if len(ur) != 3 {
 			w.WriteHeader(400)
 			return
