@@ -39,13 +39,16 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.Method {
+	// handle get requests
 	case "GET":
 		path := strings.TrimRight(r.URL.Path, "/")
 		splitted := strings.Split(path, "/")
 		switch len(splitted) {
+		// not enough or to many parameter are transmitted
 		default:
 			w.WriteHeader(400)
 			return
+		// query all contracts
 		case 2:
 			contracts, err := c.Contract.GetAllContracts()
 			if err != nil {
@@ -70,6 +73,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				klog.Errorf("could not send message %v\n", err)
 				return
 			}
+		// query specific contract
 		case 3:
 			contractId := splitted[2]
 			data, err := c.Contract.GetContract(contractId)
@@ -90,13 +94,16 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	// handle delete requests
 	case "DELETE":
 		splitted := strings.Split(r.URL.Path, "/")
+		// test if the correct count of parameters has been transmitted
 		if len(splitted) != 3 {
 			klog.Infof("wrong count of parameters")
 			w.WriteHeader(400)
 			return
 		}
+		// delete contract
 		if err := c.Contract.DeleteContract(splitted[2]); err != nil {
 			klog.Errorf("could not update contract: %s", err)
 			w.WriteHeader(500)
@@ -104,9 +111,12 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(201)
+	// handle post request
 	case "POST":
+		// insert contract
 		var contract models.Contract
 
+		// read data from body
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			klog.Errorf("could not read data from request: %s", err)
@@ -114,6 +124,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// convert json to internal data type
 		err = json.Unmarshal(body, &contract)
 		if err != nil {
 			klog.Errorf("could not parse query parameter: %s", err)
@@ -130,6 +141,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(201)
 
+	// handle all other http method requests
 	default:
 		w.WriteHeader(405)
 	}
