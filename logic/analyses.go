@@ -13,11 +13,11 @@ import (
 )
 
 type AnalysesInitial struct {
-	db database.Postgres
+	Db database.Postgres
 }
 
 func (a AnalysesInitial) Analyses(db database.Postgres) {
-	a.db = db
+	a.Db = db
 }
 
 // InsertResult insert a result into the database
@@ -30,7 +30,7 @@ func (a AnalysesInitial) InsertResult(contract string, machine string, sensor st
 
 		date := time.Unix(res.Date, 0)
 
-		if err := a.db.Insert("analyse_result", []string{"contract", "machine", "sensor", "time", "result"}, []interface{}{contract, machine, sensor, date, curJson}); err != nil {
+		if err := a.Db.Insert("analyse_result", []string{"contract", "machine", "sensor", "time", "result"}, []interface{}{contract, machine, sensor, date, curJson}); err != nil {
 			return err
 		}
 	}
@@ -49,7 +49,7 @@ func (a AnalysesInitial) GetSpecificResult(contractId string, resultId string) (
 	values := []*interface{}{&cRet}
 
 	klog.Infof("contract: %s\tid: %d", contractId, resId)
-	if err := a.db.Query("analyse_result", []string{"result"}, []string{"contract", "id"}, values, []interface{}{contractId, resId}); err != nil {
+	if err := a.Db.Query("analyse_result", []string{"result"}, []string{"contract", "id"}, values, []interface{}{contractId, resId}); err != nil {
 		return nil, err
 	}
 
@@ -107,7 +107,7 @@ func (a AnalysesInitial) GetResultSet(contractId string, queryParams map[string]
 	}
 
 	klog.Infof("parameter %v\tvalues %v\t", parameters, parameterValue)
-	if err := a.db.QueryTime("analyse_result", []string{"id", "time", "machine"}, parameters, "time", start, end, values, parameterValue); err != nil {
+	if err := a.Db.QueryTime("analyse_result", []string{"id", "time", "machine"}, parameters, "time", start, end, values, parameterValue); err != nil {
 		return nil, err
 	}
 	timeStamp = cTime.([]time.Time)

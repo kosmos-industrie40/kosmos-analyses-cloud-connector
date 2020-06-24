@@ -13,17 +13,40 @@ import (
 //TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/1
 // Postgres is the type which provides the connection to a postgresql database
 type Postgres struct {
-	db *sql.DB
+	db     *sql.DB
+	conStr string
 }
 
 func (p *Postgres) Connect(server, user, password, database string, port int) error {
-	conStr := fmt.Sprintf("host=%s user=%s password=%s port=%d sslmode=disable dbname=%s", server, user, password, port, database)
+	p.conStr = fmt.Sprintf("host=%s user=%s password=%s port=%d sslmode=disable dbname=%s", server, user, password, port, database)
+	klog.Infof("connection string is: %s", p.conStr)
 	var err error
-	(*p).db, err = sql.Open("postgres", conStr)
+	(*p).db, err = sql.Open("postgres", p.conStr)
 	if err != nil {
 		return err
 	}
-	return err
+	query, err := p.db.Query("SELECT version()")
+	if err != nil {
+		return err
+	}
+
+	var version string
+	defer func() {
+		err := query.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	for query.Next() {
+		if err := query.Scan(&version); err != nil {
+			return err
+		}
+	}
+
+	klog.Infof("database version is: %s\n", version)
+
+	return nil
 }
 
 // Insert insert data into a defined table with this function
@@ -43,8 +66,17 @@ func (p *Postgres) Insert(table string, columns []string, val []interface{}) err
 	}
 
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table, strings.Join(columns, ", "), valuesPlaceholder)
-	klog.Infof("database query insert: %s\n", query)
-	_, err := p.db.Exec(query, val...)
+	klog.Infof("database query insert: %s value: %v\n", query, val)
+	if err := p.db.Ping; err != nil {
+		klog.Errorf("could not ping database: %s\n", err)
+		//var err error
+		//klog.Infof("connection string is: %s", (*p).conStr)
+		//(*p).db, err = sql.Open("postgres", p.conStr)
+		//if err != nil {
+		//	return err
+		//}
+	}
+	_, err := (*p).db.Exec(query, val...)
 
 	return err
 }
@@ -88,6 +120,15 @@ func (p *Postgres) QueryTime(table string, columns []string, parameters []string
 	}
 
 	klog.Infof("Database query: %s", query)
+	if err := p.db.Ping; err != nil {
+		klog.Errorf("could not ping database: %s\n", err)
+		//var err error
+		//klog.Infof("connection string is: %s", p.conStr)
+		//(*p).db, err = sql.Open("postgres", p.conStr)
+		//if err != nil {
+		//	return err
+		//}
+	}
 	quResult, err := p.db.Query(query, parameterValue...)
 	if err != nil {
 		return err
@@ -207,6 +248,15 @@ func (p *Postgres) Query(table string, columns []string, parameters []string, va
 	}
 
 	klog.Infof("Database query: %s", query)
+	if err := p.db.Ping; err != nil {
+		klog.Errorf("could not ping database: %s\n", err)
+		//var err error
+		//klog.Infof("connection string is: %s", p.conStr)
+		//(*p).db, err = sql.Open("postgres", p.conStr)
+		//if err != nil {
+		//	return err
+		//}
+	}
 	quResult, err := p.db.Query(query, parameterValue...)
 	if err != nil {
 		return err
@@ -339,6 +389,15 @@ func (p *Postgres) Update(table string, parameter []string, paramValues []interf
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, update, spec)
 	klog.Infof("database query: %s\n", query)
 
+	if err := p.db.Ping; err != nil {
+		klog.Errorf("could not ping database: %s\n", err)
+		//var err error
+		//klog.Infof("connection string is: %s", p.conStr)
+		//(*p).db, err = sql.Open("postgres", p.conStr)
+		//if err != nil {
+		//	return err
+		//}
+	}
 	_, err := p.db.Exec(query, params...)
 
 	return err
@@ -364,10 +423,20 @@ func (p *Postgres) Delete(table string, paramters []string, paramValues []interf
 		query = fmt.Sprintf("DELETE FROM %s WHERE %s", table, clause)
 	}
 
+	if err := p.db.Ping; err != nil {
+		klog.Errorf("could not ping database: %s\n", err)
+		//var err error
+		//klog.Infof("connection string is: %s", p.conStr)
+		//(*p).db, err = sql.Open("postgres", p.conStr)
+		//if err != nil {
+		//	return err
+		//}
+	}
 	_, err := p.db.Exec(query, paramValues...)
 	return err
 }
 
 func (p *Postgres) Close() error {
+	klog.Infof("the database will be closed")
 	return p.db.Close()
 }

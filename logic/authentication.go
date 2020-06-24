@@ -10,12 +10,12 @@ import (
 )
 
 type Auth struct {
-	db database.Postgres
+	Db database.Postgres
 }
 
 // Authentication comparing to a constructor
 func (a Auth) Authentication(db database.Postgres) {
-	a.db = db
+	a.Db = db
 }
 
 // Login this function is been used to Login a user
@@ -26,7 +26,7 @@ func (a Auth) Login(user, password string) (string, error) {
 	columns := []string{"token", "name"}
 	data := []interface{}{token[2], user}
 
-	err := a.db.Insert("token", columns, data)
+	err := a.Db.Insert("token", columns, data)
 
 	return token[2], err
 
@@ -43,7 +43,7 @@ func (a Auth) User(token string) (string, error) {
 
 	columns := []string{"name"}
 
-	err := a.db.Query("token", columns, para, val, parameterValue)
+	err := a.Db.Query("token", columns, para, val, parameterValue)
 	klog.Infof("user is: %v", inVal)
 
 	switch v := inVal.(type) {
@@ -60,5 +60,5 @@ func (a Auth) Logout(token string) error {
 	parameter := []string{"token"}
 	paramValue := []interface{}{token}
 
-	return a.db.Delete("token", parameter, paramValue)
+	return a.Db.Delete("token", parameter, paramValue)
 }

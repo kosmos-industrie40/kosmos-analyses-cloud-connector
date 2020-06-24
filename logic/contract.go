@@ -10,12 +10,12 @@ import (
 )
 
 type Contra struct {
-	db database.Postgres
+	Db database.Postgres
 }
 
 // Contract is used as constructor
 func (c Contra) Contract(db database.Postgres) {
-	c.db = db
+	c.Db = db
 }
 
 //GetAllContracts returns a list of all contract ids
@@ -30,7 +30,7 @@ func (c Contra) GetAllContracts() ([]string, error) {
 	var parameters []string
 	var parameterValue []interface{}
 
-	err := c.db.Query("contract", columns, parameters, val, parameterValue)
+	err := c.Db.Query("contract", columns, parameters, val, parameterValue)
 
 	ret = query.([]string)
 
@@ -49,13 +49,13 @@ func (c Contra) GetContract(contract string) (models.Contract, error) {
 	val = append(val, &cModelId)
 
 	// get model ids from cloud and edge model
-	if err := c.db.Query("model_cloud", []string{"model"}, []string{"contract"}, val, []interface{}{contract}); err != nil {
+	if err := c.Db.Query("model_cloud", []string{"model"}, []string{"contract"}, val, []interface{}{contract}); err != nil {
 		return models.Contract{}, err
 	}
 	cloudId = cModelId.([]int64)
 
 	cModelId = edgeId
-	if err := c.db.Query("model_edge", []string{"model"}, []string{"contract"}, val, []interface{}{contract}); err != nil {
+	if err := c.Db.Query("model_edge", []string{"model"}, []string{"contract"}, val, []interface{}{contract}); err != nil {
 		return models.Contract{}, err
 	}
 	edgeId = cModelId.([]int64)
@@ -111,7 +111,7 @@ func (c Contra) queryModel(modelId int64) (models.Model, error) {
 	cTag = tag
 
 	value := []*interface{}{&cUrl, &cTag}
-	err := c.db.Query("model", []string{"url", "tag"}, []string{"id"}, value, []interface{}{modelId})
+	err := c.Db.Query("model", []string{"url", "tag"}, []string{"id"}, value, []interface{}{modelId})
 	if err != nil {
 		return models.Model{}, err
 	}
@@ -129,7 +129,7 @@ func (c Contra) queryMachine(contractId string) ([]models.ContractMachines, erro
 	var cId interface{} = id
 	val := []*interface{}{&cId}
 
-	if err := c.db.Query("machine_contract", []string{"machine"}, []string{"contract"}, val, []interface{}{contractId}); err != nil {
+	if err := c.Db.Query("machine_contract", []string{"machine"}, []string{"contract"}, val, []interface{}{contractId}); err != nil {
 		return nil, err
 	}
 
@@ -150,7 +150,7 @@ func (c Contra) querySensor(machine string) ([]models.ContractSensors, error) {
 	var cId interface{} = id
 	val := []*interface{}{&cId}
 
-	if err := c.db.Query("machine_sensor", []string{"id"}, []string{"machine"}, val, []interface{}{machine}); err != nil {
+	if err := c.Db.Query("machine_sensor", []string{"id"}, []string{"machine"}, val, []interface{}{machine}); err != nil {
 		return nil, err
 	}
 	id = cId.([]int64)
@@ -161,7 +161,7 @@ func (c Contra) querySensor(machine string) ([]models.ContractSensors, error) {
 		var sensId []int64
 		var cSensorId interface{} = sensId
 		val := []*interface{}{&cSensorId}
-		if err := c.db.Query("machine_sensor", []string{"sensor"}, []string{"id"}, val, []interface{}{v}); err != nil {
+		if err := c.Db.Query("machine_sensor", []string{"sensor"}, []string{"id"}, val, []interface{}{v}); err != nil {
 			return nil, err
 		}
 		sensorId = append(sensorId, cSensorId.([]int64)...)
@@ -182,7 +182,7 @@ func (c Contra) querySensor(machine string) ([]models.ContractSensors, error) {
 		var cTransId interface{} = transId
 		val := []*interface{}{&cTransId}
 
-		if err := c.db.Query("sensor", []string{"transmitted_id"}, []string{"id"}, val, []interface{}{sensorId[i]}); err != nil {
+		if err := c.Db.Query("sensor", []string{"transmitted_id"}, []string{"id"}, val, []interface{}{sensorId[i]}); err != nil {
 			return nil, fmt.Errorf("could not query sensor id %s\n", err)
 		}
 
@@ -193,7 +193,7 @@ func (c Contra) querySensor(machine string) ([]models.ContractSensors, error) {
 		valu := []*interface{}{&cModelsId}
 
 		klog.Infof("machine_sensor id: %d\n", j)
-		if err := c.db.Query("sensor_model", []string{"model"}, []string{"sensor"}, valu, []interface{}{j}); err != nil {
+		if err := c.Db.Query("sensor_model", []string{"model"}, []string{"sensor"}, valu, []interface{}{j}); err != nil {
 			return nil, fmt.Errorf("could not model: %s\n", err)
 		}
 
@@ -217,7 +217,7 @@ func (c Contra) querySensor(machine string) ([]models.ContractSensors, error) {
 
 // InsertContract inserts a new contract into the database
 func (c Contra) InsertContract(contract models.Contract) error {
-	if err := c.db.Insert("contract", []string{"id"}, []interface{}{contract.ContractId}); err != nil {
+	if err := c.Db.Insert("contract", []string{"id"}, []interface{}{contract.ContractId}); err != nil {
 		return err
 	}
 	if err := c.insertModelsCloud(contract.ContractId, contract.ModelsCloud); err != nil {
@@ -234,7 +234,7 @@ func (c Contra) InsertContract(contract models.Contract) error {
 
 func (c Contra) DeleteContract(contract string) error {
 	var upV bool = true
-	err := c.db.Update("contract", []string{"id"}, []interface{}{contract}, []string{"delete"}, []interface{}{upV})
+	err := c.Db.Update("contract", []string{"id"}, []interface{}{contract}, []string{"delete"}, []interface{}{upV})
 	return err
 }
 
@@ -243,7 +243,7 @@ func (c Contra) insertModel(model models.Model) (int64, error) {
 	var cId interface{} = id
 	value := []*interface{}{&cId}
 
-	if err := c.db.Query("model", []string{"id"}, []string{"url", "tag"}, value, []interface{}{model.Url, model.Tag}); err != nil {
+	if err := c.Db.Query("model", []string{"id"}, []string{"url", "tag"}, value, []interface{}{model.Url, model.Tag}); err != nil {
 		return 0, err
 	}
 
@@ -252,11 +252,11 @@ func (c Contra) insertModel(model models.Model) (int64, error) {
 		return id, nil
 	}
 
-	if err := c.db.Insert("model", []string{"url", "tag"}, []interface{}{model.Url, model.Tag}); err != nil {
+	if err := c.Db.Insert("model", []string{"url", "tag"}, []interface{}{model.Url, model.Tag}); err != nil {
 		return 0, err
 	}
 
-	if err := c.db.Query("model", []string{"id"}, []string{"url", "tag"}, value, []interface{}{model.Url, model.Tag}); err != nil {
+	if err := c.Db.Query("model", []string{"id"}, []string{"url", "tag"}, value, []interface{}{model.Url, model.Tag}); err != nil {
 		return 0, err
 	}
 
@@ -272,7 +272,7 @@ func (c Contra) insertModelsCloud(contractId string, models []models.Model) erro
 			return err
 		}
 
-		if err := c.db.Insert("model_cloud", []string{"contract", "model"}, []interface{}{contractId, id}); err != nil {
+		if err := c.Db.Insert("model_cloud", []string{"contract", "model"}, []interface{}{contractId, id}); err != nil {
 			return err
 		}
 	}
@@ -285,7 +285,7 @@ func (c Contra) insertModelsEdge(contractId string, models []models.Model) error
 		if err != nil {
 			return err
 		}
-		if err := c.db.Insert("model_edge", []string{"contract", "model"}, []interface{}{contractId, id}); err != nil {
+		if err := c.Db.Insert("model_edge", []string{"contract", "model"}, []interface{}{contractId, id}); err != nil {
 			return err
 		}
 	}
@@ -294,11 +294,11 @@ func (c Contra) insertModelsEdge(contractId string, models []models.Model) error
 
 func (c Contra) insertMachine(contractId string, machines []models.ContractMachines) error {
 	for _, v := range machines {
-		if err := c.db.Insert("machine", []string{"id"}, []interface{}{v.MachineId}); err != nil {
+		if err := c.Db.Insert("machine", []string{"id"}, []interface{}{v.MachineId}); err != nil {
 			return err
 		}
 
-		if err := c.db.Insert("machine_contract", []string{"contract", "machine"}, []interface{}{contractId, v.MachineId}); err != nil {
+		if err := c.Db.Insert("machine_contract", []string{"contract", "machine"}, []interface{}{contractId, v.MachineId}); err != nil {
 			return err
 		}
 
@@ -316,16 +316,16 @@ func (c Contra) insertSensor(machineId string, sensors []models.ContractSensors)
 		var cId interface{} = id
 		value := []*interface{}{&cId}
 
-		if err := c.db.Query("sensor", []string{"id"}, []string{"transmitted_id"}, value, []interface{}{sensor.SensorId}); err != nil {
+		if err := c.Db.Query("sensor", []string{"id"}, []string{"transmitted_id"}, value, []interface{}{sensor.SensorId}); err != nil {
 			return err
 		}
 
 		id = cId.(int64)
 		if id == -1 {
-			if err := c.db.Insert("sensor", []string{"transmitted_id"}, []interface{}{sensor.SensorId}); err != nil {
+			if err := c.Db.Insert("sensor", []string{"transmitted_id"}, []interface{}{sensor.SensorId}); err != nil {
 				return err
 			}
-			if err := c.db.Query("sensor", []string{"id"}, []string{"transmitted_id"}, value, []interface{}{sensor.SensorId}); err != nil {
+			if err := c.Db.Query("sensor", []string{"id"}, []string{"transmitted_id"}, value, []interface{}{sensor.SensorId}); err != nil {
 				return err
 			}
 			id = cId.(int64)
@@ -335,16 +335,16 @@ func (c Contra) insertSensor(machineId string, sensors []models.ContractSensors)
 		var cMsId interface{} = msId
 		val := []*interface{}{&cMsId}
 
-		if err := c.db.Query("machine_sensor", []string{"id"}, []string{"machine", "sensor"}, val, []interface{}{machineId, id}); err != nil {
+		if err := c.Db.Query("machine_sensor", []string{"id"}, []string{"machine", "sensor"}, val, []interface{}{machineId, id}); err != nil {
 			return err
 		}
 
 		msId = cMsId.(int64)
 		if msId == -1 {
-			if err := c.db.Insert("machine_sensor", []string{"machine", "sensor"}, []interface{}{machineId, id}); err != nil {
+			if err := c.Db.Insert("machine_sensor", []string{"machine", "sensor"}, []interface{}{machineId, id}); err != nil {
 				return err
 			}
-			if err := c.db.Query("machine_sensor", []string{"id"}, []string{"machine", "sensor"}, val, []interface{}{machineId, id}); err != nil {
+			if err := c.Db.Query("machine_sensor", []string{"id"}, []string{"machine", "sensor"}, val, []interface{}{machineId, id}); err != nil {
 				return err
 			}
 
@@ -359,7 +359,7 @@ func (c Contra) insertSensor(machineId string, sensors []models.ContractSensors)
 				return err
 			}
 
-			if err := c.db.Insert("sensor_model", []string{"sensor", "model"}, []interface{}{msId, mId}); err != nil {
+			if err := c.Db.Insert("sensor_model", []string{"sensor", "model"}, []interface{}{msId, mId}); err != nil {
 				return err
 			}
 		}

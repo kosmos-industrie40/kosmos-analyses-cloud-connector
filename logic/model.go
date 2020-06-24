@@ -6,11 +6,11 @@ import (
 )
 
 type Mod struct {
-	db database.Postgres
+	Db database.Postgres
 }
 
 func (m Mod) Model(db database.Postgres) {
-	m.db = db
+	m.Db = db
 }
 
 // GetModel returns all upgradable models for a specific contract
@@ -20,7 +20,7 @@ func (m Mod) GetModel(contractId string) ([]models.Model, error) {
 	var cId interface{} = id
 	value := []*interface{}{&cId}
 
-	if err := m.db.Query("model_update", []string{"model"}, []string{"contract", "status"}, value, []interface{}{contractId, "UPDATE"}); err != nil {
+	if err := m.Db.Query("model_update", []string{"model"}, []string{"contract", "status"}, value, []interface{}{contractId, "UPDATE"}); err != nil {
 		return nil, err
 	}
 
@@ -33,7 +33,7 @@ func (m Mod) GetModel(contractId string) ([]models.Model, error) {
 		var cUrl interface{} = url
 		value := []*interface{}{&cTag, &cUrl}
 
-		if err := m.db.Query("model", []string{"tag", "url"}, []string{"id"}, value, []interface{}{mId}); err != nil {
+		if err := m.Db.Query("model", []string{"tag", "url"}, []string{"id"}, value, []interface{}{mId}); err != nil {
 			return nil, err
 		}
 
@@ -50,12 +50,12 @@ func (m Mod) UpdateModel(contractId string, mods models.UpdateModelState) error 
 		var cId interface{} = id
 		value := []*interface{}{&cId}
 
-		if err := m.db.Query("model", []string{"id"}, []string{"tag", "url"}, value, []interface{}{model.Tag, model.Url}); err != nil {
+		if err := m.Db.Query("model", []string{"id"}, []string{"tag", "url"}, value, []interface{}{model.Tag, model.Url}); err != nil {
 			return err
 		}
 
 		id = cId.(int64)
-		if err := m.db.Update("model_update", []string{"model", "contract"}, []interface{}{id, contractId}, []string{"status"}, []interface{}{mods.State}); err != nil {
+		if err := m.Db.Update("model_update", []string{"model", "contract"}, []interface{}{id, contractId}, []string{"status"}, []interface{}{mods.State}); err != nil {
 			return err
 		}
 	}

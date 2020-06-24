@@ -66,15 +66,15 @@ func main() {
 	}()
 
 	klog.Infof("setting up logic")
-	var authentication logic.Authentication = logic.Auth{}
-	var ana logic.Analyses = logic.AnalysesInitial{}
-	var modelLogic logic.Model = logic.Mod{}
-	var cont logic.Contract = logic.Contra{}
+	var authentication logic.Authentication = logic.Auth{Db: db}
+	var ana logic.Analyses = logic.AnalysesInitial{Db: db}
+	var modelLogic logic.Model = logic.Mod{Db: db}
+	var cont logic.Contract = logic.Contra{Db: db}
 
-	authentication.Authentication(db)
-	ana.Analyses(db)
-	modelLogic.Model(db)
-	cont.Contract(db)
+	//authentication.Authentication(db)
+	//ana.Analyses(db)
+	//modelLogic.Model(db)
+	//cont.Contract(db)
 
 	klog.Infof("define endpoints")
 	var auth http.Handler = endpoints.Auth{Auth: authentication}
