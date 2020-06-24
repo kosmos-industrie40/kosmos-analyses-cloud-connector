@@ -67,8 +67,8 @@ func (p *Postgres) Insert(table string, columns []string, val []interface{}) err
 
 	query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table, strings.Join(columns, ", "), valuesPlaceholder)
 	klog.Infof("database query insert: %s value: %v\n", query, val)
-	if err := p.db.Ping; err != nil {
-		klog.Errorf("could not ping database: %s\n", err)
+	if err := p.db.Ping(); err != nil {
+		klog.Errorf("could not ping database: %s", err)
 		//var err error
 		//klog.Infof("connection string is: %s", (*p).conStr)
 		//(*p).db, err = sql.Open("postgres", p.conStr)
@@ -120,8 +120,8 @@ func (p *Postgres) QueryTime(table string, columns []string, parameters []string
 	}
 
 	klog.Infof("Database query: %s", query)
-	if err := p.db.Ping; err != nil {
-		klog.Errorf("could not ping database: %s\n", err)
+	if err := p.db.Ping(); err != nil {
+		klog.Errorf("could not ping database: %v\n", err)
 		//var err error
 		//klog.Infof("connection string is: %s", p.conStr)
 		//(*p).db, err = sql.Open("postgres", p.conStr)
@@ -248,7 +248,7 @@ func (p *Postgres) Query(table string, columns []string, parameters []string, va
 	}
 
 	klog.Infof("Database query: %s", query)
-	if err := p.db.Ping; err != nil {
+	if err := p.db.Ping(); err != nil {
 		klog.Errorf("could not ping database: %s\n", err)
 		//var err error
 		//klog.Infof("connection string is: %s", p.conStr)
@@ -389,7 +389,7 @@ func (p *Postgres) Update(table string, parameter []string, paramValues []interf
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE %s", table, update, spec)
 	klog.Infof("database query: %s\n", query)
 
-	if err := p.db.Ping; err != nil {
+	if err := p.db.Ping(); err != nil {
 		klog.Errorf("could not ping database: %s\n", err)
 		//var err error
 		//klog.Infof("connection string is: %s", p.conStr)
@@ -423,7 +423,7 @@ func (p *Postgres) Delete(table string, paramters []string, paramValues []interf
 		query = fmt.Sprintf("DELETE FROM %s WHERE %s", table, clause)
 	}
 
-	if err := p.db.Ping; err != nil {
+	if err := p.db.Ping(); err != nil {
 		klog.Errorf("could not ping database: %s\n", err)
 		//var err error
 		//klog.Infof("connection string is: %s", p.conStr)
