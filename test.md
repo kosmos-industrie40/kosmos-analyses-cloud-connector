@@ -119,7 +119,10 @@ curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/ana
 
 
 ### Upload Result
-Before you can upload the data you have the contract and the machine has to be created.
+Before you can upload the data, the contract and the machine has to be created. To do this you can use the following sql statement:
+```bash
+psql -d <database> -c "INSERT INTO contract VALUES ('77')"
+```
 ```bash
 curl -i -X POST --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/analyses/77/mach1/sens1 --data @exampleAnalyseResult.json
 ```
@@ -140,17 +143,17 @@ This endpoint uses a get request to query the required models.
 ```bash
 curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/77
 ```
-The last request should be empty. Before we can query data; we have to insert those data into the database. With the next
+The last request should be empty. Before we can query data; we have to insert those data into the database. The next
 code block contains the data which should be inserted.
 
 ```bash
 psql -d <database> -c "INSERT INTO machine VALUES ('contract')"
 psql -d <database> -c "INSERT INTO model (id, tag, url) VALUES (0, 'tag', 'url')"
-psql -d <database> -c "INSERT INTO model_update (model, contract) VALUES (0, 'contract-test33')"
+psql -d <database> -c "INSERT INTO model_update (model, contract) VALUES (0, '77')"
 ```
 
 ```bash
-curl --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/contract-test33
+curl --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/77
 ```
 
 ### Update model
