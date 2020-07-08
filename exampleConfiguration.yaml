@@ -1,0 +1,11 @@
+---
+webserver:
+  address: 127.0.0.1
+  port: 8080
+database:
+  address: 127.0.0.1
+  port: 5432
+  database: connector
+mqtt:
+  address: 127.0.0.1
+  port: 1883

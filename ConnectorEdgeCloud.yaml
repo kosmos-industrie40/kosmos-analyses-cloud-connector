@@ -199,6 +199,9 @@ components:
     data:
       type: object
       properties:
+        signature:
+          type: string
+          description: is the signature above this message
         machine:
           type: string
           description: is the machine id on which this message is created
@@ -262,16 +265,34 @@ components:
         - columns
         - data
 paths:
-  /analyses/{contractID}:
+  /analyses/{contractID}/{machineID}/{sensorID}:
     summary: central analyses endpoint
     post:
       parameters:
+        - in: path
+          name: machineID
+          schema:
+            type: string
+          required: true
+          description: is the machine id, on which a new result should be inserted
+        - in: path
+          name: sensorID
+          schema:
+            type: string
+          required: true
+          description: is the sensor id, on which a new result should be inserted
         - in: path
           name: contractID
           schema:
             type: string
           required: true
           description: is the contract id, on which a new result should be inserted
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
       responses:
         201:
           description: OK - result created on the analyses cloud
@@ -295,8 +316,16 @@ paths:
               type: array
               items:
                   $ref: "#/components/schemas/analyses"
+  /analyses/{contractID}:
+    summary: central analyses endpoint
     get:
       parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
         - in: path
           name: contractID
           schema:
@@ -357,6 +386,11 @@ paths:
   /analyses/{contractID}/{resultID}:
     get:
       parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
         - in: path
           name: contractID
           schema:
@@ -399,6 +433,12 @@ paths:
   /machine-data:
     post:
       summary: Upload sensor data to analyse cloud
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
       responses:
         '201':
           description: OK
@@ -472,16 +512,15 @@ paths:
                     type: string
                     description: more informations about this error
           
-  /auth/{token}:
-    parameters:
-      - in: path
-        name: token
-        schema:
-          type: string
-        required: true
-        description: is the token which are created by the authentication backend
     delete:
       summary: log out / delete token - user combination
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+          required: true
+          description: is the token which are created by the authentication backend
       responses:
         201:
           description: OK
@@ -498,6 +537,13 @@ paths:
                     description: more informations about this error
     get:
       summary: test authentication
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+          required: true
+          description: is the token which are created by the authentication backend
       responses:
         200:
           description: OK
@@ -521,16 +567,14 @@ paths:
                   error:
                     type: string
                     description: give more informations about the error
-  /health:
-    get:
-      summary: check if this endpoint is OK or not
-      responses:
-        204:
-          description: OK
-        500:
-          description: error
   /model/{contractId}:
     parameters:
+      - in: header
+        name: token
+        required: true
+        schema:
+          type: string
+          format: uuid
       - in: path
         name: contractId
         required: true
@@ -592,6 +636,13 @@ paths:
                     type: string
                     description: more informations about this error
   /contract:
+    parameters:
+      - in: header
+        name: token
+        required: true
+        schema:
+          type: string
+          format: uuid
     get:
       summary: get a list of all deployed contracts
       responses:
@@ -646,6 +697,12 @@ paths:
           description: not authorized
   /contract/{contractID}:
     parameters:
+      - in: header
+        name: token
+        required: true
+        schema:
+          type: string
+          format: uuid
       - in: path
         required: true
         name: contractID
@@ -692,6 +749,14 @@ paths:
                     description: more informations about this error
         401:
           description: not authorized
+  /health:
+    get:
+      summary: check if this endpoint is OK or not
+      responses:
+        204:
+          description: OK
+        500:
+          description: error
   /ready:
     get:
         summary: test if the endpoint is ready or not
