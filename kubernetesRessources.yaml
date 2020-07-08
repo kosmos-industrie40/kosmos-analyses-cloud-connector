@@ -64,7 +64,7 @@ spec:
             hostPort: 8080
             protocol: TCP
           image: |
-            harbor.kosmos.idcp.inovex.io/analyse-platform-kosmos/edge-cloud-connector:v0.0.2
+            harbor.kosmos.idcp.inovex.io/analyse-platform-kosmos/edge-cloud-connector:v0.0.3
 
 ---
 apiVersion: v1
