@@ -54,7 +54,6 @@ container_build:
         cache: {}
         before_script:
                 - echo $CI_DOCKER_CONFIG > /kaniko/.docker/config.json
-                - cat /kaniko/.docker/config.json
         script: |
                 if [ -z $CI_REGISTRY ] || [ -z $CI_REGISTRY_IMAGE ]; then
                     echo "missing parameters please add CI_REGISTRY and/or CI_REGISTRY_IMAGE"
