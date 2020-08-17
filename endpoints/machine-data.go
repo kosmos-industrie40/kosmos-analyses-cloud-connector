@@ -73,7 +73,7 @@ func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			sData.Meta = dat.Meta
 			sData.Sensor = dat.Sensor
 
-			msg.Topic = fmt.Sprintf("kosmos/machine-data/%s/sensor/%s", dat.Machine, dat.Sensor) //TODO
+			msg.Topic = fmt.Sprintf("kosmos/machine-data/%s/sensor/%s/update", dat.Machine, dat.Sensor) //TODO
 			msg.Msg, err = json.Marshal(sData)
 			if err != nil {
 				klog.Errorf("could not translate to used data: %s\n", err)
