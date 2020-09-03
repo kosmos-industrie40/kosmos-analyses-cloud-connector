@@ -30,20 +30,24 @@ CREATE TABLE IF NOT EXISTS containers (
 	url text,
 	tag text,
 	arguments text[],
-	environment text[]
+	environment text[],
+	UNIQUE(url, tag, arguments, environment)
 );
+
 
 CREATE TABLE IF NOT EXISTS connection (
 	system bigint REFERENCES systems,
 	interval interval,
 	url text,
 	user_mgmt text,
-	container bigint REFERENCES containers
+	container bigint REFERENCES containers,
+	UNIQUE(system, interval, url, user_mgmt, container)
 );
 
 CREATE TABLE IF NOT EXISTS partners (
 	contract text REFERENCES contracts,
-	organisation bigint REFERENCES organisations
+	organisation bigint REFERENCES organisations,
+	UNIQUE(contract, organisation)
 );
 
 
@@ -62,18 +66,21 @@ CREATE TABLE IF NOT EXISTS machine_sensors (
 	id bigserial PRIMARY KEY,
 	machine text REFERENCES machines,
 	sensor bigint REFERENCES sensors
+
 );
 
 CREATE TABLE IF NOT EXISTS contract_machine_sensors (
 	id bigserial PRIMARY KEY,
 	contract text REFERENCES contracts,
-	machine_sensor bigint REFERENCES machine_sensors
+	machine_sensor bigint REFERENCES machine_sensors,
+	UNIQUE(contract, machine_sensor)
 );
 
 CREATE TABLE IF NOT EXISTS storage_duration (
 	system bigint REFERENCES systems,
 	contract_machine_sensor bigint REFERENCES contract_machine_sensors,
-	duration interval
+	duration interval,
+	UNIQUE(system, contract_machine_sensor, duration)
 );
 
 
@@ -87,23 +94,23 @@ CREATE TABLE IF NOT EXISTS analyse_result (
 
 CREATE TABLE IF NOT EXISTS models (
 	id bigint PRIMARY KEY,
-	container bigint REFERENCES containers
+	container bigint REFERENCES containers UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS analyses (
 	id bigserial PRIMARY KEY,
-	contract_machine_sensor bigint REFERENCES contract_machine_sensors,
+	machine_sensor bigint REFERENCES machine_sensors,
 	prev_model bigint REFERENCES models,
-	next_model bigint REFERENCES models
+	next_model bigint REFERENCES models,
+	UNIQUE(machine_sensor, prev_model, next_model)
 );
 
 CREATE TABLE IF NOT EXISTS pipelines (
-	id bigserial PRIMARY KEY,
 	contract text REFERENCES contracts,
 	ana bigint REFERENCES analyses,
 	system bigint REFERENCES systems,
-	event_tigger boolean,
-	time_trigger interval
+	time_trigger interval,
+	UNIQUE(contract, ana, system, time_trigger)
 );
 
 CREATE TABLE IF NOT EXISTS update_message (
@@ -117,17 +124,20 @@ CREATE TABLE IF NOT EXISTS update_message (
 CREATE TABLE IF NOT EXISTS technical_containers (
 	contract text REFERENCES contracts,
 	container bigint REFERENCES containers,
-	system bigint REFERENCES systems
+	system bigint REFERENCES systems,
+	UNIQUE(contract, container, system)
 );
 
-CREATE TABLE IF NOT EXISTS write_permissions {
+CREATE TABLE IF NOT EXISTS write_permissions (
 	contract TEXT REFERENCES contracts,
-	organisation BIGINT REFERENCES organistsions
-}
+	organisation BIGINT REFERENCES organisations,
+	UNIQUE(contract, organisation)
+);
 
-CREATE TABLE IF NOT EXISTS read_permissions {
+CREATE TABLE IF NOT EXISTS read_permissions (
 	contract TEXT REFERENCES contracts,
-	organisation BIGINT REFERENCES organistsions
-}
+	organisation BIGINT REFERENCES organisations,
+	UNIQUE(contract, organisation)
+);
 
 COMMIT;
