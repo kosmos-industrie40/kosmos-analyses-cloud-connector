@@ -12,9 +12,7 @@ DROP TABLE contracts CASCADE;
 
 DROP TABLE systems CASCADE;
 
-DROP TABLE machine_sensor CASCADE;
-
-DROP TABLE sensor CASCADE;
+DROP TABLE sensors CASCADE;
 
 DROP TABLE machines CASCADE;
 
@@ -28,8 +26,15 @@ DROP TABLE analyse_result CASCADE;
 
 DROP TABLE pipelines CASCADE;
 
-DROP TABLE analyse CASCADE;
+DROP TABLE analyses CASCADE;
 
 DROP TABLE models CASCADE;
 
 DROP TABLE update_message CASCADE;
+
+DROP TABLE machine_sensors CASCADE;
+
+DROP TABLE read_permissions CASCADE;
+
+DROP TABLE write_permissions CASCADE;
+
