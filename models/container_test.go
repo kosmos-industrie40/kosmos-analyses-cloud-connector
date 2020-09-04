@@ -45,7 +45,7 @@ func TestArrayToString(t *testing.T) {
 
 	for _, v := range testTable {
 		t.Run(v.description, func(t *testing.T) {
-			output := Container{}.arrayToString(v.data)
+			output := (&Container{}).arrayToString(v.data)
 			if output != v.expect {
 				t.Errorf("expected string != returned string\n\t%s != %s\n", v.expect, output)
 			}
@@ -78,7 +78,7 @@ func TestStringToArray(t *testing.T) {
 
 	for _, v := range testTable {
 		t.Run(v.description, func(t *testing.T) {
-			output := Container{}.stringToArray(v.data)
+			output := (&Container{}).stringToArray(v.data)
 			testStringArray(output, v.expect, t)
 		})
 	}

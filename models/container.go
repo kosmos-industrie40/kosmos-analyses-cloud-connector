@@ -15,14 +15,14 @@ type Container struct {
 	Environment []string `json:"environment"`
 }
 
-func (c Container) arrayToString(data []string) string {
+func (c *Container) arrayToString(data []string) string {
 	if len(data) == 0 {
 		return "{}"
 	}
 	return "{\"" + strings.Join(data, "\",\"") + "\"}"
 }
 
-func (c Container) stringToArray(data string) []string {
+func (c *Container) stringToArray(data string) []string {
 	if data == "{}" {
 		return []string{}
 	}
@@ -32,7 +32,7 @@ func (c Container) stringToArray(data string) []string {
 	return strings.Split(data, "\",\"")
 }
 
-func (c Container) Exists(db *sql.DB) (bool, int64, error) {
+func (c *Container) Exists(db *sql.DB) (bool, int64, error) {
 	result, err := db.Query("SELECT id FROM containers WHERE url = $1 AND tag = $2 AND arguments = $3 AND environment = $4", c.Url, c.Tag, c.arrayToString(c.Arguments), c.arrayToString(c.Environment))
 	if err != nil {
 		return false, 0, err
@@ -55,7 +55,7 @@ func (c Container) Exists(db *sql.DB) (bool, int64, error) {
 	return true, id, nil
 }
 
-func (c Container) Insert(db *sql.DB) (int64, error) {
+func (c *Container) Insert(db *sql.DB) (int64, error) {
 	result, err := db.Exec("INSERT INTO containers (url, tag, arguments, environment) VALUES ($1, $2, $3, $4) RETURNING id", c.Url, c.Tag, c.arrayToString(c.Arguments), c.arrayToString(c.Environment))
 	if err != nil {
 		return 0, err
