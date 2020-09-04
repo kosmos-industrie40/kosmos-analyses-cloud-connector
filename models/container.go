@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"k8s.io/klog"
 )
@@ -14,8 +15,25 @@ type Container struct {
 	Environment []string `json:"environment"`
 }
 
+func (c Container) arrayToString(data []string) string {
+	if len(data) == 0 {
+		return "{}"
+	}
+	return "{\"" + strings.Join(data, "\",\"") + "\"}"
+}
+
+func (c Container) stringToArray(data string) []string {
+	if data == "{}" {
+		return []string{}
+	}
+
+	data = strings.TrimLeft(data, "{\"")
+	data = strings.TrimRight(data, "\"}")
+	return strings.Split(data, "\",\"")
+}
+
 func (c Container) Exists(db *sql.DB) (bool, int64, error) {
-	result, err := db.Query("SELECT id FROM containers WHERE url = $1 AND tag = $2 AND arguments = $3 AND environment = $4", c.Url, c.Tag, c.Arguments, c.Environment)
+	result, err := db.Query("SELECT id FROM containers WHERE url = $1 AND tag = $2 AND arguments = $3 AND environment = $4", c.Url, c.Tag, c.arrayToString(c.Arguments), c.arrayToString(c.Environment))
 	if err != nil {
 		return false, 0, err
 	}
@@ -38,7 +56,7 @@ func (c Container) Exists(db *sql.DB) (bool, int64, error) {
 }
 
 func (c Container) Insert(db *sql.DB) (int64, error) {
-	result, err := db.Exec("INSERT INTO containers (url, tag, arguments, environment) VALUES ($1, $2, $3, $4) RETURNING id", c.Url, c.Tag, c.Arguments, c.Environment)
+	result, err := db.Exec("INSERT INTO containers (url, tag, arguments, environment) VALUES ($1, $2, $3, $4) RETURNING id", c.Url, c.Tag, c.arrayToString(c.Arguments), c.arrayToString(c.Environment))
 	if err != nil {
 		return 0, err
 	}
@@ -51,7 +69,7 @@ func (c Container) Insert(db *sql.DB) (int64, error) {
 	return id, nil
 }
 
-func (c Container) Query(db *sql.DB, id int64) error {
+func (c *Container) Query(db *sql.DB, id int64) error {
 	result, err := db.Query("SELECT url, tag, arguments, environment FROM containers WHERE id = $1", id)
 	if err != nil {
 		return err
@@ -63,8 +81,7 @@ func (c Container) Query(db *sql.DB, id int64) error {
 		}
 	}()
 
-	var url, tag string
-	var arguments, environment []string
+	var url, tag, arguments, environment string
 
 	if !result.Next() {
 		return fmt.Errorf("no container found to id: %d\n", id)
@@ -76,8 +93,8 @@ func (c Container) Query(db *sql.DB, id int64) error {
 
 	c.Url = url
 	c.Tag = tag
-	c.Arguments = arguments
-	c.Environment = environment
+	c.Arguments = c.stringToArray(arguments)
+	c.Environment = c.stringToArray(environment)
 
 	return nil
 }
