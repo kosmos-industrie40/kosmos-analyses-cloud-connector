@@ -1,17 +1,5 @@
 package models
 
-// Password is the configuration which contains the user and password configurations
-type Password struct {
-	Mqtt struct {
-		User     string `yaml:"user"`
-		Password string `yaml:"password"`
-	} `yaml:"mqtt"`
-	Database struct {
-		User     string `yaml:"user"`
-		Password string `yaml:"password"`
-	} `yaml:"database"`
-}
-
 // Configurations contains all other configuration details
 type Configurations struct {
 	Webserver struct {
