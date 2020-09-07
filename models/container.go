@@ -50,9 +50,9 @@ func (c *Container) Exists(db *sql.DB) (bool, int64, error) {
 		return false, 0, nil
 	}
 
-	result.Scan(&id)
+	err = result.Scan(&id)
 
-	return true, id, nil
+	return true, id, err
 }
 
 func (c *Container) Insert(db *sql.DB) (int64, error) {
