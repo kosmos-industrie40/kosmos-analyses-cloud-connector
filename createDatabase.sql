@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS partners (
 
 
 CREATE TABLE IF NOT EXISTS sensors (
-	id bigint PRIMARY KEY,
+	id bigserial PRIMARY KEY,
 	transmitted_id text,
 	meta json
 );
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS analyse_result (
 );
 
 CREATE TABLE IF NOT EXISTS models (
-	id bigint PRIMARY KEY,
+	id bigserial PRIMARY KEY,
 	container bigint REFERENCES containers UNIQUE
 );
 
