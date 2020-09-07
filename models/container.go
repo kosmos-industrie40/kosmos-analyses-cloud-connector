@@ -84,7 +84,7 @@ func (c *Container) Query(db *sql.DB, id int64) error {
 	var url, tag, arguments, environment string
 
 	if !result.Next() {
-		return fmt.Errorf("no container found to id: %d\n", id)
+		return fmt.Errorf("no container found to id: %d", id)
 	}
 
 	if err := result.Scan(&url, &tag, &arguments, &environment); err != nil {
