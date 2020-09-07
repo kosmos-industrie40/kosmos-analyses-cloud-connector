@@ -215,10 +215,14 @@ func TestContainerInsert(t *testing.T) {
 			mock.ExpectExec("^INSERT INTO containers (.)+").WithArgs(v.args[0], v.args[1], v.args[2], v.args[3]).WillReturnResult(v.returnValue)
 
 			id, err := v.container.Insert(db)
-			if err != nil || v.err != nil {
+			if err != nil && v.err != nil {
 				if err.Error() != v.err.Error() {
 					t.Errorf("expected error != returned err\n\t%s != %s", err, v.err)
 				}
+			} else if err != nil {
+				t.Errorf("expected error != returned err\n\t%s != %s", err, v.err)
+			} else if v.err != nil {
+				t.Errorf("expected error != returned err\n\t%s != %s", err, v.err)
 			}
 
 			if id != v.expectedId {
@@ -268,10 +272,14 @@ func TestContainerQuery(t *testing.T) {
 			var container Container
 			err = (&container).Query(db, 1)
 
-			if err != nil || v.err != nil {
+			if err != nil && v.err != nil {
 				if err.Error() != v.err.Error() {
 					t.Errorf("expected error != returned err\n\t%s != %s", err, v.err)
 				}
+			} else if err != nil {
+				t.Errorf("expected error != returned err\n\t%s != %s", err, v.err)
+			} else if v.err != nil {
+				t.Errorf("expected error != returned err\n\t%s != %s", err, v.err)
 			}
 
 			if v.container.Url != container.Url {
