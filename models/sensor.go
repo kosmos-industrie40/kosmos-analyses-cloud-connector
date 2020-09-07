@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 
 	"k8s.io/klog"
 )
@@ -13,18 +12,18 @@ type Sensor struct {
 	Meta interface{}
 }
 
-func (s *Sensor) Insert(db sql.DB) (int64, error) {
+func (s *Sensor) Insert(db *sql.DB) (int64, error) {
 	metaB, err := json.Marshal(s.Meta)
 	if err != nil {
 		return 0, err
 	}
 	meta := string(metaB)
 
-	result, err := db.Exec("INSERT INTO sensors (transmitted_id, meta) ($1, $2) RETURNING id", s.ID, meta)
+	result, err := db.Exec("INSERT INTO sensors (transmitted_id, meta) VALUES ($1, $2) RETURNING id", s.ID, meta)
 	return result.LastInsertId()
 }
 
-func (s *Sensor) Query(db sql.DB, id int64) error {
+func (s *Sensor) Query(db *sql.DB, id int64) error {
 	result, err := db.Query("SELECT transmitted_id, meta FROM sensors WHERE id = $1", id)
 	if err != nil {
 		return err
@@ -47,7 +46,7 @@ func (s *Sensor) Query(db sql.DB, id int64) error {
 	return nil
 }
 
-func (s *Sensor) Exists(db sql.DB) (bool, int64, error) {
+func (s *Sensor) Exists(db *sql.DB) (bool, int64, error) {
 	metaB, err := json.Marshal(s.Meta)
 	if err != nil {
 		return false, 0, err
