@@ -26,11 +26,11 @@ type DataMeta struct {
 }
 
 type SendData struct {
-	Machine   string        `json:"machine,omitempty"`
-	Timestamp string        `json:"timestamp"`
-	Sensor    string        `json:"string,omitempty"`
-	From      string        `json:"from"`
-	Columns   []DataColumnn `json:"columns"`
-	Data      [][]string    `json:"data"`
-	Meta      []DataMeta    `json:"meta"`
+	//	Machine   string        `json:"machine,omitempty"`
+	Timestamp string `json:"timestamp"`
+	//	Sensor    string        `json:"sensor,omitempty"`
+	From    string        `json:"from"`
+	Columns []DataColumnn `json:"columns"`
+	Data    [][]string    `json:"data"`
+	Meta    []DataMeta    `json:"meta,omitempty"`
 }
