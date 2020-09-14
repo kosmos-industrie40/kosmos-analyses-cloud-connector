@@ -2,6 +2,7 @@ package models
 
 type Data struct {
 	Machine   string        `json:"machine,omitempty"`
+	Timestamp string        `json:"timestamp"`
 	Sensor    string        `json:"sensor"`
 	MessageId int           `json:"message_id,omitempty"`
 	From      string        `json:"from"`
