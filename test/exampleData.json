@@ -4,6 +4,7 @@
 		"sensor": "abc",
 		"message_id": 55,
 		"from": "jan",
+		"timestamp": "2020-09-14T10:58Z",
 		"columns": [
 			{
 				"name": "temperature",
