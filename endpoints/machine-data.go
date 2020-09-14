@@ -72,6 +72,7 @@ func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			sData.Machine = dat.Machine
 			sData.Meta = dat.Meta
 			sData.Sensor = dat.Sensor
+			sData.Timestamp = dat.Timestamp
 
 			msg.Topic = fmt.Sprintf("kosmos/machine-data/%s/sensor/%s/update", dat.Machine, dat.Sensor) //TODO
 			msg.Msg, err = json.Marshal(sData)
