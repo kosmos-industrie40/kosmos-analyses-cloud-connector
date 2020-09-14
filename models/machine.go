@@ -2,6 +2,7 @@ package models
 
 type Data struct {
 	Machine   string        `json:"machine,omitempty"`
+	Timestamp string        `json:"timestamp"`
 	Sensor    string        `json:"sensor"`
 	MessageId int           `json:"message_id,omitempty"`
 	From      string        `json:"from"`
@@ -25,10 +26,11 @@ type DataMeta struct {
 }
 
 type SendData struct {
-	Machine string        `json:"machine,omitempty"`
-	Sensor  string        `json:"string,omitempty"`
-	From    string        `json:"from"`
-	Columns []DataColumnn `json:"columns"`
-	Data    [][]string    `json:"data"`
-	Meta    []DataMeta    `json:"meta"`
+	Machine   string        `json:"machine,omitempty"`
+	Timestamp string        `json:"timestamp"`
+	Sensor    string        `json:"string,omitempty"`
+	From      string        `json:"from"`
+	Columns   []DataColumnn `json:"columns"`
+	Data      [][]string    `json:"data"`
+	Meta      []DataMeta    `json:"meta"`
 }
