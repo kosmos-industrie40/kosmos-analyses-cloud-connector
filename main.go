@@ -1,6 +1,8 @@
 package main
 
 import (
+	"database/sql"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/klog"
 
@@ -9,7 +11,6 @@ import (
 	"net/http"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/config"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/endpoints"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/mqtt"
@@ -33,18 +34,26 @@ func main() {
 	var pas config.Password
 	var conf config.Configurations
 
-	if err := config.ParseConfiguration(cli.configuration, &conf); err != nil {
+	if err := config.ParseConfigurations(cli.configuration, &conf); err != nil {
 		panic(err)
 	}
-	if err := config.ParseConfiguration(cli.password, &pas); err != nil {
+	if err := config.ParsePassword(cli.password, &pas); err != nil {
 		panic(err)
 	}
 
 	klog.Infof("configuration is parsed")
 
 	klog.Infof("connect to database")
-	var db database.Postgres
-	if err := db.Connect(conf.Database.Address, pas.Database.User, pas.Database.Password, conf.Database.Database, conf.Database.Port); err != nil {
+	conStr := fmt.Sprintf("host=%s user=%s password=%s port=%d sslmode=disable dbname=%s",
+		conf.Database.Address,
+		pas.Database.User,
+		pas.Database.Password,
+		conf.Database.Port,
+		conf.Database.Database,
+	)
+
+	db, err := sql.Open("postgres", conStr)
+	if err != nil {
 		panic(err)
 	}
 
