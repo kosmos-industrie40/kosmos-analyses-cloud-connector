@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 
 	"k8s.io/klog"
 )
@@ -21,7 +21,7 @@ func (a AnalysesInitial) Analyses(db database.Postgres) {
 }
 
 // InsertResult insert a result into the database
-func (a AnalysesInitial) InsertResult(contract string, machine string, sensor string, data []models.UploadResult) error {
+func (a AnalysesInitial) InsertResult(contract string, machine string, sensor string, data []models_database.UploadResult) error {
 	for _, res := range data {
 		curJson, err := json.Marshal(res)
 		if err != nil {
@@ -57,7 +57,7 @@ func (a AnalysesInitial) GetSpecificResult(contractId string, resultId string) (
 }
 
 // GetResultSet returns an array of all results, which fulfill given parameters
-func (a AnalysesInitial) GetResultSet(contractId string, queryParams map[string][]string) ([]models.ResultList, error) {
+func (a AnalysesInitial) GetResultSet(contractId string, queryParams map[string][]string) ([]models_database.ResultList, error) {
 	parameters := []string{"contract"}
 	parameterValue := []interface{}{contractId}
 	start := time.Time{}
@@ -118,10 +118,10 @@ func (a AnalysesInitial) GetResultSet(contractId string, queryParams map[string]
 		return nil, fmt.Errorf("the length of the array of the database result has not the same size")
 	}
 
-	var ret []models.ResultList
+	var ret []models_database.ResultList
 	for i := 0; i < len(timeStamp); i++ {
 		date := timeStamp[i]
-		ret = append(ret, models.ResultList{
+		ret = append(ret, models_database.ResultList{
 			Id:      id[i],
 			Machine: machine[i],
 			Date:    date.Unix(),

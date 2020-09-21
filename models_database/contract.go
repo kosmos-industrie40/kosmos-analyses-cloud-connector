@@ -1,4 +1,4 @@
-package models
+package models_database
 
 type Contract struct {
 	ModelsCloud []Model            `json:"modelsCloud"`

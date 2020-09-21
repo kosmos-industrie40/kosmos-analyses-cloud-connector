@@ -1,4 +1,4 @@
-package models
+package models_database
 
 import (
 	"database/sql/driver"
@@ -8,11 +8,11 @@ import (
 	dbMock "github.com/DATA-DOG/go-sqlmock"
 )
 
-func TestSystemsExists(t *testing.T) {
+func TestOrganistaionExists(t *testing.T) {
 
 	testTable := []struct {
 		rows              *dbMock.Rows
-		system            System
+		organisation      Organisation
 		args              []interface{}
 		expectedExistence bool
 		expectedId        int64
@@ -20,7 +20,7 @@ func TestSystemsExists(t *testing.T) {
 	}{
 		{
 			dbMock.NewRows([]string{"id"}),
-			System{},
+			Organisation{},
 			[]interface{}{""},
 			false,
 			0,
@@ -28,7 +28,7 @@ func TestSystemsExists(t *testing.T) {
 		},
 		{
 			dbMock.NewRows([]string{"id"}).AddRow(1),
-			System{Name: "abc"},
+			Organisation{Name: "abc"},
 			[]interface{}{"abc"},
 			true,
 			1,
@@ -36,7 +36,7 @@ func TestSystemsExists(t *testing.T) {
 		},
 		{
 			dbMock.NewRows([]string{"id"}).AddRow(1).AddRow(5),
-			System{Name: "abc"},
+			Organisation{Name: "abc"},
 			[]interface{}{"abc"},
 			true,
 			1,
@@ -51,11 +51,11 @@ func TestSystemsExists(t *testing.T) {
 				t.Fatalf("can not open mocked database: %s\n", err)
 			}
 			defer db.Close()
-			mock.ExpectQuery("^SELECT id FROM systems").
+			mock.ExpectQuery("^SELECT id FROM organisations").
 				WithArgs(v.args[0]).
 				WillReturnRows(v.rows)
 
-			exists, id, err := v.system.Exists(db)
+			exists, id, err := v.organisation.Exists(db)
 
 			if err != nil {
 				t.Errorf("expected Error != returned error\n\tnil != %s\n", err)
@@ -77,31 +77,31 @@ func TestSystemsExists(t *testing.T) {
 	}
 }
 
-func TestSystemsInsert(t *testing.T) {
+func TestOrganistaionInsert(t *testing.T) {
 
 	testTable := []struct {
-		returnValue driver.Result
-		systems     System
-		args        []interface{}
-		expectedId  int64
-		err         error
-		description string
+		returnValue   driver.Result
+		organisations Organisation
+		args          []interface{}
+		expectedId    int64
+		err           error
+		description   string
 	}{
 		{
 			dbMock.NewResult(1, 1),
-			System{Name: "abc"},
+			Organisation{Name: "abc"},
 			[]interface{}{"abc"},
 			1,
 			nil,
-			"INSERT first Systems",
+			"INSERT first Organisations",
 		},
 		{
 			dbMock.NewErrorResult(fmt.Errorf("bla")),
-			System{Name: "abc"},
+			Organisation{Name: "abc"},
 			[]interface{}{"abc"},
 			0,
 			fmt.Errorf("bla"),
-			"INSERT first Systems",
+			"INSERT first Organisations",
 		},
 	}
 
@@ -112,9 +112,9 @@ func TestSystemsInsert(t *testing.T) {
 				t.Fatalf("can not open mocked database: %s\n", err)
 			}
 			defer db.Close()
-			mock.ExpectExec("^INSERT INTO systems (.)+").WithArgs(v.args[0]).WillReturnResult(v.returnValue)
+			mock.ExpectExec("^INSERT INTO organisations (.)+").WithArgs(v.args[0]).WillReturnResult(v.returnValue)
 
-			id, err := v.systems.Insert(db)
+			id, err := v.organisations.Insert(db)
 			if err != nil && v.err != nil {
 				if err.Error() != v.err.Error() {
 					t.Errorf("expected error != returned err\n\t%s != %s", err, v.err)
@@ -136,17 +136,17 @@ func TestSystemsInsert(t *testing.T) {
 	}
 }
 
-func TestSystemsQuery(t *testing.T) {
+func TestOrganisationsQuery(t *testing.T) {
 
 	testTable := []struct {
-		rows        *dbMock.Rows
-		systems     System
-		description string
-		err         error
+		rows          *dbMock.Rows
+		organisations Organisation
+		description   string
+		err           error
 	}{
 		{
 			dbMock.NewRows([]string{"name"}).AddRow("abc"),
-			System{
+			Organisation{
 				Name: "abc",
 			},
 			"no matched elemend found",
@@ -162,12 +162,12 @@ func TestSystemsQuery(t *testing.T) {
 			}
 			defer db.Close()
 
-			mock.ExpectQuery("^SELECT name FROM systems").
+			mock.ExpectQuery("^SELECT name FROM organisations").
 				WithArgs(1).
 				WillReturnRows(v.rows)
 
-			var systems System
-			err = (&systems).Query(db, 1)
+			var organisations Organisation
+			err = (&organisations).Query(db, 1)
 
 			if err != nil && v.err != nil {
 				if err.Error() != v.err.Error() {
@@ -179,8 +179,8 @@ func TestSystemsQuery(t *testing.T) {
 				t.Errorf("expected error != returned err\n\t%s != %s", err, v.err)
 			}
 
-			if v.systems.Name != systems.Name {
-				t.Errorf("the name are different\n\t%s != %s", v.systems.Name, systems.Name)
+			if v.organisations.Name != organisations.Name {
+				t.Errorf("the name are different\n\t%s != %s", v.organisations.Name, organisations.Name)
 			}
 
 			if err := mock.ExpectationsWereMet(); err != nil {

@@ -2,7 +2,7 @@ package logic
 
 import (
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 )
 
 type Mod struct {
@@ -13,9 +13,9 @@ func (m Mod) Model(db database.Postgres) {
 	m.Db = db
 }
 
-// GetModel returns all upgradable models for a specific contract
-// the state which are upgradable models have is 'UPDATE'
-func (m Mod) GetModel(contractId string) ([]models.Model, error) {
+// GetModel returns all upgradable models_database for a specific contract
+// the state which are upgradable models_database have is 'UPDATE'
+func (m Mod) GetModel(contractId string) ([]models_database.Model, error) {
 	var id []int64
 	var cId interface{} = id
 	value := []*interface{}{&cId}
@@ -26,7 +26,7 @@ func (m Mod) GetModel(contractId string) ([]models.Model, error) {
 
 	id = cId.([]int64)
 
-	var ret []models.Model
+	var ret []models_database.Model
 	for _, mId := range id {
 		var tag, url string
 		var cTag interface{} = tag
@@ -37,14 +37,14 @@ func (m Mod) GetModel(contractId string) ([]models.Model, error) {
 			return nil, err
 		}
 
-		ret = append(ret, models.Model{Tag: cTag.(string), Url: cUrl.(string)})
+		ret = append(ret, models_database.Model{Tag: cTag.(string), Url: cUrl.(string)})
 	}
 
 	return ret, nil
 }
 
 // UpdateModel is the logic to update a model state in the database
-func (m Mod) UpdateModel(contractId string, mods models.UpdateModelState) error {
+func (m Mod) UpdateModel(contractId string, mods models_database.UpdateModelState) error {
 	for _, model := range mods.Models {
 		var id int64
 		var cId interface{} = id

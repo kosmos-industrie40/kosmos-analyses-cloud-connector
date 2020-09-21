@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 )
 
 // using this varibale to control the behavior of the GetAllContracts function
@@ -18,12 +18,12 @@ var getAllContracts string = "not error"
 
 type testContracts struct{}
 
-func (c testContracts) GetContract(id string) (models.Contract, error) {
+func (c testContracts) GetContract(id string) (models_database.Contract, error) {
 	switch id {
 	default:
-		return models.Contract{}, nil
+		return models_database.Contract{}, nil
 	case "error":
-		return models.Contract{}, fmt.Errorf("error")
+		return models_database.Contract{}, fmt.Errorf("error")
 	}
 }
 
@@ -42,7 +42,7 @@ func (c testContracts) GetAllContracts() ([]string, error) {
 	}
 }
 
-func (c testContracts) InsertContract(data models.Contract) error {
+func (c testContracts) InsertContract(data models_database.Contract) error {
 	switch data.ContractId {
 	case "error":
 		return fmt.Errorf("error")
@@ -65,8 +65,8 @@ func (c testContracts) DeleteContract(id string) error {
 var contract Contract = Contract{Auth: AuthTest{}, Contract: testContracts{}}
 
 func TestContractPost(t *testing.T) {
-	errorCase := models.Contract{ContractId: "error"}
-	successCase := models.Contract{ContractId: "success"}
+	errorCase := models_database.Contract{ContractId: "error"}
+	successCase := models_database.Contract{ContractId: "success"}
 
 	errorCaseBytes, err := json.Marshal(errorCase)
 	if err != nil {

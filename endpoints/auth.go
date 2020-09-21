@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 
 	"k8s.io/klog"
 )
@@ -40,7 +40,7 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// using data type and auto json converting
-		retUser := models.RetUser{Name: user}
+		retUser := models_database.RetUser{Name: user}
 		dat, err := json.Marshal(retUser)
 		if err != nil {
 			klog.Errorf("could not encode data to send back: %v", err)
@@ -52,7 +52,7 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// handle post requests
 	case "POST":
-		var user models.User
+		var user models_database.User
 		// read data from the request
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -77,7 +77,7 @@ func (a Auth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// using specific type to send back the request (using std ways to create the json)
-		token := models.Token{Token: tok}
+		token := models_database.Token{Token: tok}
 		sBody, err := json.Marshal(token)
 		if err != nil {
 			klog.Errorf("could not marshal token: %v\n", err)

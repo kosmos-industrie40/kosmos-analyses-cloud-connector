@@ -9,7 +9,7 @@ import (
 	"k8s.io/klog"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 )
 
 type Model struct {
@@ -45,7 +45,7 @@ func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	// handle get requests
 	case "GET":
-		// get all models, which are used in by a contract
+		// get all models_database, which are used in by a contract
 		path := strings.TrimRight(r.URL.Path, "/")
 		ur := strings.Split(path, "/")
 		// wrong count of parameters
@@ -102,7 +102,7 @@ func (m Model) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// parse data to internal data type
-		var uploadedData models.UpdateModelState
+		var uploadedData models_database.UpdateModelState
 		if err := json.Unmarshal(body, &uploadedData); err != nil {
 			klog.Errorf("could not unmarshal data: %s\n", err)
 			w.WriteHeader(400)

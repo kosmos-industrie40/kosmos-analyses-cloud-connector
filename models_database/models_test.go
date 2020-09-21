@@ -1,4 +1,4 @@
-package models
+package models_database
 
 import (
 	"database/sql/driver"
@@ -27,7 +27,7 @@ func TestModel_Insert(t *testing.T) {
 			[]interface{}{1},
 			1,
 			nil,
-			"test insert both models and containers",
+			"test insert both models_database and containers",
 		},
 		{
 			dbMock.NewResult(5, 1),
@@ -37,7 +37,7 @@ func TestModel_Insert(t *testing.T) {
 			[]interface{}{2},
 			5,
 			nil,
-			"test insert models only",
+			"test insert models_database only",
 		},
 	}
 
@@ -54,7 +54,7 @@ func TestModel_Insert(t *testing.T) {
 			if id, _ := v.containerResult.LastInsertId(); id != 0 {
 				mock.ExpectExec("INSERT INTO containers (.)+").WillReturnResult(v.containerResult)
 			}
-			mock.ExpectExec("INSERT INTO models (.)+").WillReturnResult(v.modelsResult)
+			mock.ExpectExec("INSERT INTO models_database (.)+").WillReturnResult(v.modelsResult)
 
 			model := Model{Container: v.container}
 			id, err := model.Insert(db)
@@ -124,7 +124,7 @@ func TestModel_Query(t *testing.T) {
 
 			defer db.Close()
 
-			mock.ExpectQuery("SELECT container FROM models").WithArgs(1).WillReturnRows(v.modelRows)
+			mock.ExpectQuery("SELECT container FROM models_database").WithArgs(1).WillReturnRows(v.modelRows)
 			if v.bothQuery {
 				mock.ExpectQuery("SELECT url, tag, arguments, environment FROM containers").WillReturnRows(v.containerRows)
 			}
@@ -207,7 +207,7 @@ func TestModel_Exists(t *testing.T) {
 
 			mock.ExpectQuery("SELECT id FROM containers").WillReturnRows(v.containerRows)
 			if v.bothQuery {
-				mock.ExpectQuery("SELECT id FROM models").WithArgs(1).WillReturnRows(v.modelRows)
+				mock.ExpectQuery("SELECT id FROM models_database").WithArgs(1).WillReturnRows(v.modelRows)
 			}
 
 			var model Model

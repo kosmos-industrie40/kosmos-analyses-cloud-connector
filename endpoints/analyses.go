@@ -9,7 +9,7 @@ import (
 	"k8s.io/klog"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 )
 
 type Analyses struct {
@@ -126,7 +126,7 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// convert json to used data types
-		var data []models.UploadResult
+		var data []models_database.UploadResult
 		if err := json.Unmarshal(body, &data); err != nil {
 			klog.Errorf("could not parse data: %s\n", err)
 			w.WriteHeader(400)

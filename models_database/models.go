@@ -1,4 +1,4 @@
-package models
+package models_database
 
 import (
 	"database/sql"
@@ -24,7 +24,7 @@ func (m *Model) Insert(db *sql.DB) (int64, error) {
 		}
 	}
 
-	ret, err := db.Query("INSERT INTO models (container) VALUES ($1) RETURNING id", cId)
+	ret, err := db.Query("INSERT INTO models_database (container) VALUES ($1) RETURNING id", cId)
 	if err != nil {
 		return 0, err
 	}
@@ -45,7 +45,7 @@ func (m *Model) Insert(db *sql.DB) (int64, error) {
 }
 
 func (m *Model) Query(db *sql.DB, id int64) error {
-	query, err := db.Query("SELECT container FROM models WHERE id = $1", id)
+	query, err := db.Query("SELECT container FROM models_database WHERE id = $1", id)
 	if err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (m *Model) Exists(db *sql.DB) (bool, int64, error) {
 		return false, 0, nil
 	}
 
-	query, err := db.Query("SELECT id FROM models WHERE container = $1", cID)
+	query, err := db.Query("SELECT id FROM models_database WHERE container = $1", cID)
 	if err != nil {
 		return false, 0, err
 	}

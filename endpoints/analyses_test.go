@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 )
 
 // using this varibale to control the behavior of the GetAllAnalysess function
@@ -18,7 +18,7 @@ type testAnalysis struct{}
 
 func (a testAnalysis) Analyses(d database.Postgres) {}
 
-func (a testAnalysis) InsertResult(id, contract, sensor string, data []models.UploadResult) error {
+func (a testAnalysis) InsertResult(id, contract, sensor string, data []models_database.UploadResult) error {
 	switch id {
 	case "error":
 		return fmt.Errorf("error")
@@ -38,14 +38,14 @@ func (a testAnalysis) GetSpecificResult(id, contract string) ([]byte, error) {
 	}
 }
 
-func (a testAnalysis) GetResultSet(id string, query map[string][]string) ([]models.ResultList, error) {
+func (a testAnalysis) GetResultSet(id string, query map[string][]string) ([]models_database.ResultList, error) {
 	switch id {
 	case "error":
 		return nil, fmt.Errorf("error")
 	case "one":
-		return []models.ResultList{{Id: 1}}, nil
+		return []models_database.ResultList{{Id: 1}}, nil
 	case "two":
-		return []models.ResultList{{Id: 1}, {Id: 2}}, nil
+		return []models_database.ResultList{{Id: 1}, {Id: 2}}, nil
 	default:
 		return nil, nil
 	}

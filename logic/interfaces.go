@@ -2,7 +2,7 @@ package logic
 
 import (
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 )
 
 type Authentication interface {
@@ -14,21 +14,21 @@ type Authentication interface {
 
 type Analyses interface {
 	Analyses(database.Postgres)
-	InsertResult(string, string, string, []models.UploadResult) error
+	InsertResult(string, string, string, []models_database.UploadResult) error
 	GetSpecificResult(string, string) ([]byte, error)
-	GetResultSet(string, map[string][]string) ([]models.ResultList, error)
+	GetResultSet(string, map[string][]string) ([]models_database.ResultList, error)
 }
 
 type Contract interface {
-	GetContract(string) (models.Contract, error)
+	GetContract(string) (models_database.Contract, error)
 	GetAllContracts() ([]string, error)
-	InsertContract(models.Contract) error
+	InsertContract(models_database.Contract) error
 	Contract(database.Postgres)
 	DeleteContract(string) error
 }
 
 type Model interface {
 	Model(database.Postgres)
-	GetModel(string) ([]models.Model, error)
-	UpdateModel(string, models.UpdateModelState) error
+	GetModel(string) ([]models_database.Model, error)
+	UpdateModel(string, models_database.UpdateModelState) error
 }

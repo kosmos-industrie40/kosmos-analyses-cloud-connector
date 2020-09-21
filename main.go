@@ -12,7 +12,7 @@ import (
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/endpoints"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/mqtt"
 )
 
@@ -31,8 +31,8 @@ func main() {
 	flag.Parse()
 
 	// config variables
-	var pas models.Password
-	var conf models.Configurations
+	var pas models_database.Password
+	var conf models_database.Configurations
 
 	if err := config.ParseConfiguration(cli.configuration, &conf); err != nil {
 		panic(err)

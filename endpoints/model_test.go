@@ -10,23 +10,23 @@ import (
 	"testing"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 )
 
 type testModel struct{}
 
 func (m testModel) Model(_ database.Postgres) {}
 
-func (m testModel) GetModel(contract string) ([]models.Model, error) {
+func (m testModel) GetModel(contract string) ([]models_database.Model, error) {
 	switch contract {
 	default:
 		return nil, nil
 	case "error":
 		return nil, fmt.Errorf("error")
 	case "empty":
-		return []models.Model{}, nil
+		return []models_database.Model{}, nil
 	case "two":
-		ret := []models.Model{
+		ret := []models_database.Model{
 			{
 				Tag: "tag",
 				Url: "url",
@@ -38,7 +38,7 @@ func (m testModel) GetModel(contract string) ([]models.Model, error) {
 		}
 		return ret, nil
 	case "one":
-		ret := []models.Model{
+		ret := []models_database.Model{
 			{
 				Tag: "tag",
 				Url: "url",
@@ -48,7 +48,7 @@ func (m testModel) GetModel(contract string) ([]models.Model, error) {
 	}
 }
 
-func (m testModel) UpdateModel(contract string, model models.UpdateModelState) error {
+func (m testModel) UpdateModel(contract string, model models_database.UpdateModelState) error {
 	if contract == "error" {
 		return fmt.Errorf("error")
 	}
@@ -58,7 +58,7 @@ func (m testModel) UpdateModel(contract string, model models.UpdateModelState) e
 var model Model = Model{Auth: AuthTest{}, Model: testModel{}}
 
 func TestModelUpdate(t *testing.T) {
-	mod, err := json.Marshal(models.UpdateModelState{})
+	mod, err := json.Marshal(models_database.UpdateModelState{})
 	if err != nil {
 		t.Fatal(t)
 	}
@@ -113,28 +113,28 @@ func TestModelGet(t *testing.T) {
 	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/4
 	testCases := []struct {
 		StatusCode int
-		Expected   []models.Model
+		Expected   []models_database.Model
 		Path       string
 	}{
 		{
 			StatusCode: 400,
 			Path:       "/",
-			Expected:   []models.Model{},
+			Expected:   []models_database.Model{},
 		},
 		{
 			StatusCode: 500,
 			Path:       "/contract/error",
-			Expected:   []models.Model{},
+			Expected:   []models_database.Model{},
 		},
 		{
 			StatusCode: 200,
 			Path:       "/contract/empty",
-			Expected:   []models.Model{},
+			Expected:   []models_database.Model{},
 		},
 		{
 			StatusCode: 200,
 			Path:       "/contract/two",
-			Expected: []models.Model{
+			Expected: []models_database.Model{
 				{
 					Tag: "tag",
 					Url: "url",
@@ -148,7 +148,7 @@ func TestModelGet(t *testing.T) {
 		{
 			StatusCode: 200,
 			Path:       "/contract/one",
-			Expected: []models.Model{
+			Expected: []models_database.Model{
 				{
 					Tag: "tag",
 					Url: "url",

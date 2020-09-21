@@ -9,7 +9,7 @@ import (
 	"k8s.io/klog"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/mqtt"
 )
 
@@ -45,8 +45,8 @@ func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(405)
 	// handle post requests
 	case "POST":
-		var data []models.Data
-		var sData models.SendData
+		var data []models_database.Data
+		var sData models_database.SendData
 		var msg mqtt.Msg
 
 		// read data from body

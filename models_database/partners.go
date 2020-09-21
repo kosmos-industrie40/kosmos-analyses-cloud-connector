@@ -1,4 +1,4 @@
-package models
+package models_database
 
 import (
 	"database/sql"
@@ -7,22 +7,13 @@ import (
 	"k8s.io/klog"
 )
 
-type Permission struct {
+type Partners struct {
 	Contract      string
 	Organisations []string
 }
 
-func (p *Permission) Query(db *sql.DB, contract, permission string) error {
-	var table string
-	switch permission {
-	case "read":
-		table = "read_permission"
-	case "write":
-		table = "write_permission"
-	default:
-		return fmt.Errorf("unexpected permission")
-	}
-	result, err := db.Query(fmt.Sprintf("SELECT organisations FROM %s WHERE contract = $1", table), contract)
+func (p *Partners) Query(db *sql.DB, contract, permission string) error {
+	result, err := db.Query("SELECT organisations FROM partners WHERE contract = $1", contract)
 	if err != nil {
 		return err
 	}
@@ -47,23 +38,14 @@ func (p *Permission) Query(db *sql.DB, contract, permission string) error {
 	}
 
 	if len(p.Organisations) == 0 {
-		return fmt.Errorf("no permission found")
+		return fmt.Errorf("no partners found")
 	}
 
 	p.Contract = contract
 	return nil
 }
 
-func (p *Permission) Insert(db *sql.DB, permission string) error {
-	var table string
-	switch permission {
-	case "read":
-		table = "read_permission"
-	case "write":
-		table = "write_permission"
-	default:
-		return fmt.Errorf("unexpected permission")
-	}
+func (p *Partners) Insert(db *sql.DB, permission string) error {
 	var orgs []int64
 
 	for _, v := range p.Organisations {
@@ -81,7 +63,7 @@ func (p *Permission) Insert(db *sql.DB, permission string) error {
 	}
 
 	for _, v := range orgs {
-		_, err := db.Exec(fmt.Sprintf("INSERT INTO %s (contract, organisaion) VALUES ($1, $2)", table), p.Contract, v)
+		_, err := db.Exec("INSERT INTO partners (contract, organisaion) VALUES ($1, $2)", p.Contract, v)
 		if err != nil {
 			return err
 		}

@@ -7,18 +7,18 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 )
 
 func TestConfigPasswords(t *testing.T) {
-	var password models.Password
+	var password models_database.Password
 	password.Database.Password = "abc"
 	password.Database.User = "bcd"
 	password.Mqtt.Password = "pppp"
 	password.Mqtt.User = "asdf"
 
 	bytes, err := yaml.Marshal(password)
-	var conf models.Password
+	var conf models_database.Password
 	if err != nil {
 		t.Errorf("could not parse configuration to yaml: %v\n", err)
 	}
@@ -33,7 +33,7 @@ func TestConfigPasswords(t *testing.T) {
 }
 
 func TestConfigConfiguration(t *testing.T) {
-	var configuration models.Configuration
+	var configuration models_database.Configuration
 	configuration.Database.Address = "127.0.0.1"
 	configuration.Database.Database = "postgres"
 	configuration.Database.Port = 789
@@ -41,7 +41,7 @@ func TestConfigConfiguration(t *testing.T) {
 	configuration.Mqtt.Port = 5432
 
 	bytes, err := yaml.Marshal(configuration)
-	var conf models.Configuration
+	var conf models_database.Configuration
 	if err != nil {
 		t.Errorf("could not parse configuration to yaml: %v\n", err)
 	}

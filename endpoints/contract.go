@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 
 	"k8s.io/klog"
 )
@@ -114,7 +114,7 @@ func (c Contract) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// handle post request
 	case "POST":
 		// insert contract
-		var contract models.Contract
+		var contract models_database.Contract
 
 		// read data from body
 		body, err := ioutil.ReadAll(r.Body)

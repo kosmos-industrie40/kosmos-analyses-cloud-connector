@@ -9,11 +9,11 @@ import (
 	yaml "gopkg.in/yaml.v2"
 	"k8s.io/klog"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 )
 
 // ParseConfiguration parse a yaml file and returns the configuration in the configuration data model.
-func ParseConfigurations(path string, configurations *models.Configuration) error {
+func ParseConfigurations(path string, configurations *models_database.Configuration) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func ParseConfigurations(path string, configurations *models.Configuration) erro
 // handleConfiguration is used to provide a better possibility to test this functionality
 // (not mocking file open operations)
 // this function will decode the open file to the configuration data model
-func handleConfiguration(handle io.Reader, conf *models.Configuration) error {
+func handleConfiguration(handle io.Reader, conf *models_database.Configuration) error {
 	decoder := yaml.NewDecoder(handle)
 	decoder.SetStrict(true)
 
@@ -44,7 +44,7 @@ func handleConfiguration(handle io.Reader, conf *models.Configuration) error {
 }
 
 // ParsePassword parse a yaml file and returns the passowrd-user combinations in the passsword data model.
-func ParsePassword(path string, password *models.Password) error {
+func ParsePassword(path string, password *models_database.Password) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func ParsePassword(path string, password *models.Password) error {
 // handlePassword is used to provide a better possibility to test this functionality
 // (not mocking file open operations)
 // this function will decode the open file to the password data model
-func handlePassword(handle io.Reader, password *models.Password) error {
+func handlePassword(handle io.Reader, password *models_database.Password) error {
 	decoder := yaml.NewDecoder(handle)
 	decoder.SetStrict(true)
 

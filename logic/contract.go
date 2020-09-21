@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
 
 	"k8s.io/klog"
 )
@@ -38,9 +38,9 @@ func (c Contra) GetAllContracts() ([]string, error) {
 }
 
 // GetContract returns a specific contract
-func (c Contra) GetContract(contract string) (models.Contract, error) {
+func (c Contra) GetContract(contract string) (models_database.Contract, error) {
 	klog.Infof("contract is %s\n", contract)
-	ret := models.Contract{ContractId: contract}
+	ret := models_database.Contract{ContractId: contract}
 
 	var cloudId, edgeId []int64
 	var cModelId interface{}
@@ -50,13 +50,13 @@ func (c Contra) GetContract(contract string) (models.Contract, error) {
 
 	// get model ids from cloud and edge model
 	if err := c.Db.Query("model_cloud", []string{"model"}, []string{"contract"}, val, []interface{}{contract}); err != nil {
-		return models.Contract{}, err
+		return models_database.Contract{}, err
 	}
 	cloudId = cModelId.([]int64)
 
 	cModelId = edgeId
 	if err := c.Db.Query("model_edge", []string{"model"}, []string{"contract"}, val, []interface{}{contract}); err != nil {
-		return models.Contract{}, err
+		return models_database.Contract{}, err
 	}
 	edgeId = cModelId.([]int64)
 
@@ -65,7 +65,7 @@ func (c Contra) GetContract(contract string) (models.Contract, error) {
 		mod, err := c.queryModel(v)
 		if err != nil {
 			klog.Errorf("could not query model with id %d\n", v)
-			return models.Contract{}, err
+			return models_database.Contract{}, err
 		}
 		ret.ModelsEdge = append(ret.ModelsEdge, mod)
 	}
@@ -73,20 +73,20 @@ func (c Contra) GetContract(contract string) (models.Contract, error) {
 		mod, err := c.queryModel(v)
 		if err != nil {
 			klog.Errorf("could not query model with id %d\n", v)
-			return models.Contract{}, err
+			return models_database.Contract{}, err
 		}
 		ret.ModelsCloud = append(ret.ModelsCloud, mod)
 	}
 
 	mach, err := c.queryMachine(contract)
 	if err != nil {
-		return models.Contract{}, err
+		return models_database.Contract{}, err
 	}
 
 	for i, v := range mach {
 		sensor, err := c.querySensor(v.MachineId)
 		if err != nil {
-			return models.Contract{}, err
+			return models_database.Contract{}, err
 		}
 		mach[i].Sensors = sensor
 	}
@@ -94,14 +94,14 @@ func (c Contra) GetContract(contract string) (models.Contract, error) {
 	ret.Machines = mach
 
 	if ret.ModelsCloud == nil && ret.ModelsEdge == nil && ret.Machines == nil {
-		return models.Contract{}, nil
+		return models_database.Contract{}, nil
 	}
 
 	return ret, nil
 }
 
-func (c Contra) queryModel(modelId int64) (models.Model, error) {
-	var ret models.Model
+func (c Contra) queryModel(modelId int64) (models_database.Model, error) {
+	var ret models_database.Model
 
 	var url string
 	var tag string
@@ -113,7 +113,7 @@ func (c Contra) queryModel(modelId int64) (models.Model, error) {
 	value := []*interface{}{&cUrl, &cTag}
 	err := c.Db.Query("model", []string{"url", "tag"}, []string{"id"}, value, []interface{}{modelId})
 	if err != nil {
-		return models.Model{}, err
+		return models_database.Model{}, err
 	}
 
 	ret.Tag = cTag.(string)
@@ -122,8 +122,8 @@ func (c Contra) queryModel(modelId int64) (models.Model, error) {
 	return ret, nil
 }
 
-func (c Contra) queryMachine(contractId string) ([]models.ContractMachines, error) {
-	var ret []models.ContractMachines
+func (c Contra) queryMachine(contractId string) ([]models_database.ContractMachines, error) {
+	var ret []models_database.ContractMachines
 
 	var id []string
 	var cId interface{} = id
@@ -137,14 +137,14 @@ func (c Contra) queryMachine(contractId string) ([]models.ContractMachines, erro
 
 	id = cId.([]string)
 	for _, v := range id {
-		ret = append(ret, models.ContractMachines{MachineId: v})
+		ret = append(ret, models_database.ContractMachines{MachineId: v})
 	}
 
 	return ret, nil
 }
 
-func (c Contra) querySensor(machine string) ([]models.ContractSensors, error) {
-	var ret []models.ContractSensors
+func (c Contra) querySensor(machine string) ([]models_database.ContractSensors, error) {
+	var ret []models_database.ContractSensors
 
 	var id, sensorId []int64
 	var cId interface{} = id
@@ -176,7 +176,7 @@ func (c Contra) querySensor(machine string) ([]models.ContractSensors, error) {
 
 	for i, j := range id {
 
-		var sensor models.ContractSensors
+		var sensor models_database.ContractSensors
 
 		var transId string
 		var cTransId interface{} = transId
@@ -216,7 +216,7 @@ func (c Contra) querySensor(machine string) ([]models.ContractSensors, error) {
 }
 
 // InsertContract inserts a new contract into the database
-func (c Contra) InsertContract(contract models.Contract) error {
+func (c Contra) InsertContract(contract models_database.Contract) error {
 	if err := c.Db.Insert("contract", []string{"id"}, []interface{}{contract.ContractId}); err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func (c Contra) DeleteContract(contract string) error {
 	return err
 }
 
-func (c Contra) insertModel(model models.Model) (int64, error) {
+func (c Contra) insertModel(model models_database.Model) (int64, error) {
 	var id int64 = -1
 	var cId interface{} = id
 	value := []*interface{}{&cId}
@@ -265,7 +265,7 @@ func (c Contra) insertModel(model models.Model) (int64, error) {
 	return id, nil
 }
 
-func (c Contra) insertModelsCloud(contractId string, models []models.Model) error {
+func (c Contra) insertModelsCloud(contractId string, models []models_database.Model) error {
 	for _, v := range models {
 		id, err := c.insertModel(v)
 		if err != nil {
@@ -279,7 +279,7 @@ func (c Contra) insertModelsCloud(contractId string, models []models.Model) erro
 	return nil
 }
 
-func (c Contra) insertModelsEdge(contractId string, models []models.Model) error {
+func (c Contra) insertModelsEdge(contractId string, models []models_database.Model) error {
 	for _, v := range models {
 		id, err := c.insertModel(v)
 		if err != nil {
@@ -292,7 +292,7 @@ func (c Contra) insertModelsEdge(contractId string, models []models.Model) error
 	return nil
 }
 
-func (c Contra) insertMachine(contractId string, machines []models.ContractMachines) error {
+func (c Contra) insertMachine(contractId string, machines []models_database.ContractMachines) error {
 	for _, v := range machines {
 		if err := c.Db.Insert("machine", []string{"id"}, []interface{}{v.MachineId}); err != nil {
 			return err
@@ -309,7 +309,7 @@ func (c Contra) insertMachine(contractId string, machines []models.ContractMachi
 	return nil
 }
 
-func (c Contra) insertSensor(machineId string, sensors []models.ContractSensors) error {
+func (c Contra) insertSensor(machineId string, sensors []models_database.ContractSensors) error {
 	for _, sensor := range sensors {
 
 		var id int64 = -1
@@ -351,7 +351,7 @@ func (c Contra) insertSensor(machineId string, sensors []models.ContractSensors)
 			msId = cMsId.(int64)
 		}
 
-		klog.Infof("there are %d models", len(sensor.Model))
+		klog.Infof("there are %d models_database", len(sensor.Model))
 		for _, j := range sensor.Model {
 			klog.Infof("model tag: %s and url: %s\n", j.Tag, j.Url)
 			mId, err := c.insertModel(j)
