@@ -2,18 +2,17 @@ package main
 
 import (
 	"database/sql"
-
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"k8s.io/klog"
-
 	"flag"
 	"fmt"
 	"net/http"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/config"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/endpoints"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/mqtt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"k8s.io/klog"
+
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/config"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/logic"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/mqtt"
 )
 
 var cli struct {

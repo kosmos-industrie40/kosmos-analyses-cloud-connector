@@ -8,8 +8,8 @@ import (
 
 	"k8s.io/klog"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/logic"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/models_database"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/logic"
 )
 
 type Analyses struct {

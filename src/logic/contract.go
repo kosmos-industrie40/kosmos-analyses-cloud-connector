@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/models_database"
+
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/models_database"
 
 	"k8s.io/klog"
 )

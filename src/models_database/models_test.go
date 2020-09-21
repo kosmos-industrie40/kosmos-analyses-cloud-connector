@@ -10,14 +10,14 @@ import (
 
 func TestModel_Insert(t *testing.T) {
 	testTable := []struct {
-		modelsResult driver.Result
-		containerRows *dbMock.Rows
+		modelsResult    driver.Result
+		containerRows   *dbMock.Rows
 		containerResult driver.Result // using listInsertID == 0 to identify, that this is not used in this test
-		container Container
-		argsModels []interface{}
-		expectedId int64
-		err error
-		description string
+		container       Container
+		argsModels      []interface{}
+		expectedId      int64
+		err             error
+		description     string
 	}{
 		{
 			dbMock.NewResult(1, 1),
@@ -82,12 +82,12 @@ func TestModel_Insert(t *testing.T) {
 
 func TestModel_Query(t *testing.T) {
 	testTable := []struct {
-		modelRows *dbMock.Rows
-		containerRows *dbMock.Rows
-		bothQuery bool
+		modelRows         *dbMock.Rows
+		containerRows     *dbMock.Rows
+		bothQuery         bool
 		expectedContainer Container
-		expectedError error
-		description string
+		expectedError     error
+		description       string
 	}{
 		{
 			dbMock.NewRows([]string{"container"}),

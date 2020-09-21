@@ -2,8 +2,9 @@ package logic
 
 import (
 	"fmt"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 	"strings"
+
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 
 	"github.com/google/uuid"
 	"k8s.io/klog"

@@ -1,7 +1,5 @@
 package logic
 
-import ()
-
 type Oidc struct {
 }
 
