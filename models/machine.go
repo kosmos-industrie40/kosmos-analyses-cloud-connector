@@ -142,23 +142,61 @@ func (m *Machine) Insert(db *sql.DB) ([]int64, error) {
 
 	meta := string(metaB)
 
-	if _, err := db.Exec("INSERT INTO machines (id, meta) VALUES ($1, $2)", m.ID, meta); err != nil {
+	if _, err := db.Query("INSERT INTO machines (id, meta) VALUES ($1, $2)", m.ID, meta); err != nil {
 		return nil, err
 	}
 
 	var msIds []int64
 	for _, sensor := range m.Sensors {
-		id, err := sensor.Insert(db)
-		if err != nil {
-			return nil, err
-		}
+		msId, err := func() (int64, error) {
+			sensorExists, sensorId, err := sensor.Exists(db)
+			if err != nil {
+				return 0, err
+			}
 
-		ms, err := db.Exec("INSERT INTO machine_sensors (machine, sensor) VALUES ($1, $2) RETURNING id", m.ID, id)
-		if err != nil {
-			return nil, err
-		}
+			if !sensorExists {
+				sensorId, err = sensor.Insert(db)
+				if err != nil {
+					return 0, err
+				}
+			}
 
-		msId, err := ms.LastInsertId()
+			res, err := db.Query("SELECT id FROM machine_sensor WHERE machine = %1 AND sensor = $2", m.ID, sensorId)
+			if err != nil {
+				return 0, err
+			}
+
+			defer func() {
+				if err := res.Close(); err != nil {
+					klog.Errorf("cannot close query object: %s", err)
+				}
+			}()
+
+			var msID int64
+
+			if res.Next() {
+				err := res.Scan(&msID)
+				return msID, err
+			} else {
+				result, err := db.Query("INSERT INTO machine_sensor (machine, sensor) VALUES ($1, $2) RETURNING id", m.ID, sensorId)
+				if err != nil {
+					return 0, err
+				}
+
+				defer func() {
+					if err := result.Close(); err != nil {
+						klog.Errorf("cannot close query object: %s", err)
+					}
+				}()
+
+				if !result.Next() {
+					return 0, fmt.Errorf("no returned id found")
+				}
+
+				err = result.Scan(&msID)
+				return msID, err
+			}
+		}()
 		if err != nil {
 			return nil, err
 		}
