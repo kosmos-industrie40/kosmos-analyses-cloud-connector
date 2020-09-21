@@ -11,7 +11,6 @@ import (
 type Machine struct {
 	ID      string
 	Meta    interface{}
-	Sensors []Sensor
 }
 
 func (m *Machine) Exists(db *sql.DB, id string, meta interface{}) (bool, string, error) {
@@ -61,37 +60,6 @@ func (m *Machine) Query(db *sql.DB, id string) error {
 
 	m.Meta = metaDe
 	m.ID = id
-
-	querySensors, err := db.Query("SELECT sensor FROM machine_sensors WHERE id = $1 GROUP BY sensor", id)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err := querySensors.Close(); err != nil {
-			klog.Errorf("cannot close query object: %s\n", err)
-		}
-	}()
-
-	var sensorIds []int64
-
-	for !querySensors.Next() {
-		var id int64
-		if err := querySensors.Scan(&id); err != nil {
-			return err
-		}
-
-		sensorIds = append(sensorIds, id)
-	}
-
-	for _, v := range sensorIds {
-		sensor := Sensor{}
-		if err := sensor.Query(db, v); err != nil {
-			return err
-		}
-		m.Sensors = append(m.Sensors, sensor)
-	}
-
 	return nil
 }
 
@@ -105,7 +73,7 @@ func (m *Machine) Insert(db *sql.DB) (string, error) {
 	if exists {
 		return m.ID, nil
 	}
-	
+
 	metaB, err := json.Marshal(m.Meta)
 	if err != nil {
 		return "", err
