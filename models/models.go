@@ -24,12 +24,24 @@ func (m *Model) Insert(db *sql.DB) (int64, error) {
 		}
 	}
 
-	id, err := db.Exec("INSERT INTO models (container) VALUES ($1) RETURNING id", cId)
+	ret, err := db.Query("INSERT INTO models (container) VALUES ($1) RETURNING id", cId)
 	if err != nil {
 		return 0, err
 	}
 
-	return id.LastInsertId()
+	defer func(){
+		if err := ret.Close(); err != nil  {
+			klog.Errorf("cannot close query object: %s", err)
+		}
+	}()
+
+	if !ret.Next() {
+		return 0, fmt.Errorf("no id is returned")
+	}
+	var id int64
+
+	err = ret.Scan(&id)
+	return id, err
 }
 
 func (m *Model) Query(db *sql.DB, id int64) error {

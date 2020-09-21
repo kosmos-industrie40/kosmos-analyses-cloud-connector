@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
 	"k8s.io/klog"
 )
@@ -19,8 +20,24 @@ func (s *Sensor) Insert(db *sql.DB) (int64, error) {
 	}
 	meta := string(metaB)
 
-	result, err := db.Exec("INSERT INTO sensors (transmitted_id, meta) VALUES ($1, $2) RETURNING id", s.ID, meta)
-	return result.LastInsertId()
+	result, err := db.Query("INSERT INTO sensors (transmitted_id, meta) VALUES ($1, $2) RETURNING id", s.ID, meta)
+	if err != nil {
+		return 0, err
+	}
+
+	defer func(){
+		if err := result.Close(); err != nil {
+			klog.Errorf("cannot close query object: %s", err)
+		}
+	}()
+
+	if !result.Next() {
+		return 0, fmt.Errorf("no id is returned")
+	}
+
+	var id int64
+	err = result.Scan(&id)
+	return id, err
 }
 
 func (s *Sensor) Query(db *sql.DB, id int64) error {

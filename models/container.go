@@ -56,17 +56,24 @@ func (c *Container) Exists(db *sql.DB) (bool, int64, error) {
 }
 
 func (c *Container) Insert(db *sql.DB) (int64, error) {
-	result, err := db.Exec("INSERT INTO containers (url, tag, arguments, environment) VALUES ($1, $2, $3, $4) RETURNING id", c.Url, c.Tag, c.arrayToString(c.Arguments), c.arrayToString(c.Environment))
+	result, err := db.Query("INSERT INTO containers (url, tag, arguments, environment) VALUES ($1, $2, $3, $4) RETURNING id", c.Url, c.Tag, c.arrayToString(c.Arguments), c.arrayToString(c.Environment))
 	if err != nil {
 		return 0, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
+	defer func(){
+		if err := result.Close(); err != nil {
+			klog.Errorf("cannot close query object: %s", err)
+		}
+	}()
+
+	var id int64
+	if !result.Next() {
+		return 0, fmt.Errorf("no id is returned")
 	}
 
-	return id, nil
+	err = result.Scan(&id)
+	return id, err
 }
 
 func (c *Container) Query(db *sql.DB, id int64) error {
