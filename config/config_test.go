@@ -23,7 +23,7 @@ func TestConfigPasswords(t *testing.T) {
 		t.Errorf("could not parse configuration to yaml: %v\n", err)
 	}
 
-	if err := handleConfiguration(strings.NewReader(string(bytes)), &conf); err != nil {
+	if err := handlePassword(strings.NewReader(string(bytes)), &conf); err != nil {
 		t.Errorf("could not unparse from yaml to configuration")
 	}
 
@@ -33,17 +33,15 @@ func TestConfigPasswords(t *testing.T) {
 }
 
 func TestConfigConfiguration(t *testing.T) {
-	var configuration models.Configurations
+	var configuration models.Configuration
 	configuration.Database.Address = "127.0.0.1"
 	configuration.Database.Database = "postgres"
 	configuration.Database.Port = 789
 	configuration.Mqtt.Address = "127.0.0.1"
 	configuration.Mqtt.Port = 5432
-	configuration.Webserver.Address = "127.0.0.1"
-	configuration.Webserver.Port = 8080
 
 	bytes, err := yaml.Marshal(configuration)
-	var conf models.Configurations
+	var conf models.Configuration
 	if err != nil {
 		t.Errorf("could not parse configuration to yaml: %v\n", err)
 	}
