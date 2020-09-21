@@ -33,8 +33,18 @@ func (m MachineSensor) Exists (db *sql.DB, sensorID int64, machineID string) (bo
 	return true, id, err
 }
 
-func (m MachineSensor) Insert (db *sql.DB, machineID string, sensorID int64) (int64, error) {
-	query, err := db.Query("INSERT INTO machine_sensor (machine, sensor) VALUES ($1, $2) RETURNING id", machineID, sensorID)
+func (m MachineSensor) Insert (db *sql.DB,) (int64, error) {
+	machine, err := m.Machine.Insert(db)
+	if err != nil {
+		return 0, err
+	}
+
+	sensor, err := m.Sensor.Insert(db)
+	if err != nil {
+		return 0, err
+	}
+
+	query, err := db.Query("INSERT INTO machine_sensors (machine, sensor) VALUES ($1, $2) RETURNING id", machine, sensor)
 	if err != nil {
 		return 0, err
 	}
@@ -54,7 +64,7 @@ func (m MachineSensor) Insert (db *sql.DB, machineID string, sensorID int64) (in
 }
 
 func (m MachineSensor) Query (db *sql.DB, id int64) error {
-	query, err := db.Query("SELECT machine, sensor FROM machine_sensor WHERE id = $1", id)
+	query, err := db.Query("SELECT machine, sensor FROM machine_sensors WHERE id = $1", id)
 	if err != nil {
 		return err
 	}
