@@ -1,4 +1,4 @@
-package models_database
+package config
 
 // Password is the configuration which contains the user and password configurations
 type Password struct {

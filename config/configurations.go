@@ -1,4 +1,4 @@
-package models_database
+package config
 
 // Configurations contains all other configuration details
 type Configurations struct {
