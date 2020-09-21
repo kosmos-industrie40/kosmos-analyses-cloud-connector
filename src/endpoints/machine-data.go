@@ -8,9 +8,10 @@ import (
 
 	"k8s.io/klog"
 
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/models"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/logic"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/models_database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/mqtt"
+	mqttModels "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/mqtt/models"
 )
 
 type MachineData struct {
@@ -45,8 +46,8 @@ func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(405)
 	// handle post requests
 	case "POST":
-		var data []models_database.Data
-		var sData models_database.SendData
+		var data []models.MachineData
+		var sData mqttModels.MachineData
 		var msg mqtt.Msg
 
 		// read data from body
@@ -68,12 +69,11 @@ func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		for _, dat := range data {
 			sData.Columns = dat.Columns
 			sData.Data = dat.Data
-			sData.From = dat.From
-			sData.Machine = dat.Machine
-			sData.Meta = dat.Meta
-			sData.Sensor = dat.Sensor
+			sData.Metadata = dat.Metadata
+			sData.Timestamp = dat.Timestamp
+			sData.Signature = dat.Signature
 
-			msg.Topic = fmt.Sprintf("kosmos/machine-data/%s/sensor/%s/update", dat.Machine, dat.Sensor) //TODO
+			msg.Topic = fmt.Sprintf("kosmos/machine-data/%s/sensor/%s/update", dat.Machine, dat.Sensor)
 			msg.Msg, err = json.Marshal(sData)
 			if err != nil {
 				klog.Errorf("could not translate to used data: %s\n", err)
