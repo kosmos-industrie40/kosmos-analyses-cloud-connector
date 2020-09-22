@@ -1,42 +1,41 @@
-package endpoints
+package machineData
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"k8s.io/klog"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/models"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/logic"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoint/auth"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/mqtt"
 	mqttModels "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/mqtt/models"
 )
 
-type MachineData struct {
-	SendChan chan mqtt.Msg
-	Auth     logic.Authentication
+type MachineData interface {
+	ServeHTTP(http.ResponseWriter, *http.Request)
 }
 
-func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("token")
+func NewMachineDataEndpoint(sendChan chan mqtt.Msg, authHelper auth.AuthHelper) MachineData {
+	return machineData{sendChan: sendChan, auth: auth.AuthHelper}
+}
 
-	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/2
-	if token == "" {
-		w.WriteHeader(401)
-		return
-	}
+type machineData struct {
+	sendChan chan mqtt.Msg
+	auth     auth.AuthHelper
+}
 
-	user, err := m.Auth.User(token)
+func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	authenticated, statusCode, err := m.auth.IsAuthenticated(r)
 	if err != nil {
-		w.WriteHeader(500)
-		klog.Errorf("could not test if user is authenticated: %s", err)
-		return
+		klog.Errorf("cannot check authentication: %s", err)
 	}
 
-	if user == "" {
-		w.WriteHeader(401)
+	if !authenticated {
+		w.WriteHeader(statusCode)
 		return
 	}
 
@@ -46,7 +45,7 @@ func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(405)
 	// handle post requests
 	case "POST":
-		var data []models.MachineData
+		var data []Model
 		var sData mqttModels.MachineData
 		var msg mqtt.Msg
 
@@ -73,6 +72,12 @@ func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			sData.Timestamp = dat.Timestamp
 			sData.Signature = dat.Signature
 
+			if _, err := time.Parse(time.RFC3339, dat.Timestamp); err != nil {
+				klog.Errorf("cannot validate timestamp: %s", err)
+				w.WriteHeader(400)
+				return
+			}
+
 			msg.Topic = fmt.Sprintf("kosmos/machine-data/%s/sensor/%s/update", dat.Machine, dat.Sensor)
 			msg.Msg, err = json.Marshal(sData)
 			if err != nil {
@@ -82,7 +87,7 @@ func (m MachineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// sending message to mqtt broker
-			m.SendChan <- msg
+			m.sendChan <- msg
 		}
 	}
 }

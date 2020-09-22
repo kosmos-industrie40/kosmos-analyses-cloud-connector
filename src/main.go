@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 	"net/http"
@@ -10,13 +9,10 @@ import (
 	"k8s.io/klog"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/config"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/analysis"
-	contract2 "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/contract"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/auth"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/health"
-	machineData2 "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/machineData"
-	model2 "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/model"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/machineData"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/ready"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/logic"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/mqtt"
 )
 
@@ -56,10 +52,11 @@ func main() {
 		conf.Database.Database,
 	)
 
-	db, err := sql.Open("postgres", conStr)
-	if err != nil {
-		panic(err)
-	}
+	klog.Infof("conString: %s\n", conStr)
+	//db, err := sql.Open("postgres", conStr)
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	klog.Infof("connect to database")
 	var mqttCo mqtt.Mqtt
@@ -78,32 +75,38 @@ func main() {
 	}()
 
 	klog.Infof("setting up logic")
-	var authentication logic.Authentication = logic.Auth{Db: db}
-	var ana logic.Analyses = logic.AnalysesInitial{Db: db}
-	var modelLogic logic.Model = logic.Mod{Db: db}
-	var cont logic.Contract = logic.Contra{Db: db}
-
+	/*
+		var authentication logic.Authentication = logic.Auth{Db: db}
+		var ana logic.Analyses = logic.AnalysesInitial{Db: db}
+		var modelLogic logic.Model = logic.Mod{Db: db}
+		var cont logic.Contract = logic.Contra{Db: db}
+	*/
 	//authentication.Authentication(db)
 	//ana.Analyses(db)
 	//modelLogic.Model(db)
 	//cont.Contract(db)
 
-	klog.Infof("define endpoints")
-	var auth http.Handler = machineData2.Auth{Auth: authentication}
-	var contract http.Handler = contract2.Contract{Auth: authentication, Contract: cont}
-	var machineData http.Handler = machineData2.MachineData{SendChan: sendChan, Auth: authentication}
-	var analysesResult http.Handler = analysis.Analyses{Auth: authentication, Analyses: ana}
-	var model http.Handler = model2.Model{Auth: authentication, Model: modelLogic}
+	authHelper := auth.NewAuthHelper()
 
+	klog.Infof("define endpoints")
+	machineHandler := machineData.NewMachineDataEndpoint(sendChan, authHelper)
+	/*
+		var auth http.Handler = machineData2.Auth{Auth: authentication}
+		var contract http.Handler = contract2.Contract{Auth: authentication, Contract: cont}
+		var machineData http.Handler = machineData2.MachineData{SendChan: sendChan, Auth: authentication}
+		var analysesResult http.Handler = analysis.Analyses{Auth: authentication, Analyses: ana}
+		var model http.Handler = model2.Model{Auth: authentication, Model: modelLogic}
+	*/
 	// paths
-	http.Handle("/metrics", promhttp.Handler())
-	http.Handle("/analyses/", analysesResult)
-	http.Handle("/machine-data/", machineData)
-	http.Handle("/auth", auth)
 	http.Handle("/health", new(health.Health))
-	http.Handle("/model/", model)
+	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/machine-data", machineHandler)
 	http.Handle("/ready", new(ready.Ready))
-	http.Handle("/contract/", contract)
+
+	//http.Handle("/analyses/", analysesResult)
+	//http.Handle("/auth", auth)
+	//http.Handle("/model/", model)
+	//http.Handle("/contract/", contract)
 
 	klog.Infof("start webserver")
 	listen := fmt.Sprintf("%s:%d", conf.Webserver.Address, conf.Webserver.Port)

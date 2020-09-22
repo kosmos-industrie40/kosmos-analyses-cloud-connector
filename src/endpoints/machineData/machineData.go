@@ -1,6 +1,6 @@
-package models
+package machineData
 
-type MachineData struct {
+type Model struct {
 	Machine   string `json:"machine"`
 	Sensor    string `json:"sensor"`
 	Timestamp string `json:"timestamp"`
