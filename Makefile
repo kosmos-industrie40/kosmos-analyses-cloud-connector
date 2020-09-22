@@ -1,7 +1,7 @@
 .PHONY: build clean test lint
 
 build:
-	go build -o connector ./
+	go build -o connector src/main.go
 
 clean:
 	${RM} connector
@@ -11,7 +11,7 @@ test:
 
 lint:
 	golangci-lint run ./...
-	go vet ./...
+	go lint ./...
 
 coverage:
 	go test -covermode=count -coverprofile cov --tags unit ./...
