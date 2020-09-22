@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: KOSMoS Connector Edge Cloud
-  description: This file defines the http endpoint which provides a connector to the analyse cloud. The connector will be used by the edge to push messages to the cloud and receive results of the unit.
+  description: This file defines the http endpoint which provides a connector to the analysis cloud. The connector will be used by the edge to push messages to the cloud and receive results of the unit.
   version: 1.0.0
   contact:
     name: Jan Unterbrink
@@ -158,7 +158,7 @@ components:
                   required:
                     - sensor
                     - result
-    analyses:
+    analysis:
       type: object
       required:
         - result
@@ -265,8 +265,8 @@ components:
         - columns
         - data
 paths:
-  /analyses/{contractID}/{machineID}/{sensorID}:
-    summary: central analyses endpoint
+  /analysis/{contractID}/{machineID}/{sensorID}:
+    summary: central analysis endpoint
     post:
       parameters:
         - in: path
@@ -295,7 +295,7 @@ paths:
           required: true
       responses:
         201:
-          description: OK - result created on the analyses cloud
+          description: OK - result created on the analysis cloud
         401:
           description: not authorized
         500:
@@ -315,9 +315,9 @@ paths:
             schema:
               type: array
               items:
-                  $ref: "#/components/schemas/analyses"
-  /analyses/{contractID}:
-    summary: central analyses endpoint
+                  $ref: "#/components/schemas/analysis"
+  /analysis/{contractID}:
+    summary: central analysis endpoint
     get:
       parameters:
         - in: header
@@ -343,15 +343,17 @@ paths:
             type: string
           description: including only specific sensor in the list of the result ids
         - in: query
-          name: start
+          name: string
           schema:
             type: integer
-          description: include only result after this specific time (using unix-timestamp to identify)
+          description: include only result after this specific time (using (rfc 3339)[https://tools.ietf.org/html/rfc3339.html#section-5.8])
+          example: 2020-09-18T14:46:22+00:00
         - in: query
           name: end
           schema:
-            type: integer
-          description: include only result before this specific time (using unix-timestamp to identify)
+            type: string
+          description: include only result before this specific time (using (rfc 3339)[https://tools.ietf.org/html/rfc3339.html#section-5.8])
+          example: 2020-09-18T14:46:22+00:00
       responses:
         401:
           description: not authorized
@@ -383,7 +385,7 @@ paths:
                     machine:
                       type: string
                       description: is the id of the machine on which the result was made
-  /analyses/{contractID}/{resultID}:
+  /analysis/{contractID}/{resultID}:
     get:
       parameters:
         - in: header
@@ -412,7 +414,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/analyses"
+                  $ref: "#/components/schemas/analysis"
         '204':
           description: OK - no results are made
         '404':
@@ -432,7 +434,7 @@ paths:
                     description: more informations about this error
   /machine-data:
     post:
-      summary: Upload sensor data to analyse cloud
+      summary: Upload sensor data to analysis cloud
       parameters:
         - in: header
           name: token
@@ -655,7 +657,7 @@ paths:
                 minItems: 0
                 items:
                   type: string
-                  description: is the id of the contracts which are deployed and active in the analyse cloud
+                  description: is the id of the contracts which are deployed and active in the analysis cloud
         500:
           description: error
           content:
