@@ -1,4 +1,4 @@
-package endpoints
+package ready
 
 import (
 	"net/http"
