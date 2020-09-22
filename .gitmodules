@@ -1,0 +1,3 @@
+[submodule "kosmos-json-specifications"]
+	path = kosmos-json-specifications
+	url = https://gitlab.inovex.de/proj-kosmos/documentation/specifications/kosmos-json-specifications.git
