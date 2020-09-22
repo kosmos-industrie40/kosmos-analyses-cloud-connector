@@ -33,7 +33,7 @@ func (a analysisHandler) Insert(contractID string, machineID string, sensorID st
 		return err
 	}
 
-	defer func(){
+	defer func() {
 		if err := query.Close(); err != nil {
 			klog.Errorf("cannot close query object: %s", err)
 		}
@@ -66,7 +66,7 @@ func (a analysisHandler) Query(contractID string, resultID int64) (Analysis, err
 		return Analysis{}, err
 	}
 
-	defer func(){
+	defer func() {
 		if err := query.Close(); err != nil {
 			klog.Errorf("cannot close query object: %s", err)
 		}

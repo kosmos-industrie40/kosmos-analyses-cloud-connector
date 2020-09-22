@@ -43,7 +43,7 @@ func (r resultListHandler) Get(contractID string, queryParams map[string][]strin
 
 		switch i {
 		case "machine":
-			ids, err := func()([]string, error) {
+			ids, err := func() ([]string, error) {
 				query, err := r.db.Query("SELECT cms.id FROM contract_machine_sensors as cms JOIN machine_sensors ms on cms.machine_sensor = ms.id WHERE ms.machine = $1",
 					v[0],
 				)
@@ -67,7 +67,6 @@ func (r resultListHandler) Get(contractID string, queryParams map[string][]strin
 					ids = append(ids, fmt.Sprintf("%d", id))
 				}
 
-
 				return ids, nil
 			}()
 
@@ -78,7 +77,7 @@ func (r resultListHandler) Get(contractID string, queryParams map[string][]strin
 			queryWhere = append(queryWhere, fmt.Sprintf("contract_machine_sensor in ($%d)", counter))
 			argWhere = append(argWhere, strings.Join(ids, ","))
 		case "sensor":
-			ids, err := func()([]string, error){
+			ids, err := func() ([]string, error) {
 				query, err := r.db.Query("SELECT cms.id FROM contract_machine_sensors as cms JOIN machine_sensors ms on cms.machine_sensor = ms.id JOIN sensors s on ms.sensor = s.id WHERE s.transmitted_id = $1",
 					v[0],
 				)
