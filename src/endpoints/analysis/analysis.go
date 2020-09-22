@@ -1,4 +1,4 @@
-package endpoints
+package analyse
 
 import (
 	"encoding/json"
@@ -7,17 +7,24 @@ import (
 	"strings"
 
 	"k8s.io/klog"
-
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/models_database"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/logic"
 )
 
-type Analyses struct {
-	Auth     logic.Authentication
-	Analyses logic.Analyses
+type Analysis interface {
+	ServeHTTP(http.ResponseWriter, *http.Request)
 }
 
-func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+type analyses struct {
+	//Auth     logic.Authentication
+	Analysis AnalyseLogic
+}
+
+func NewAnalysisEndpoint(analysis AnalyseLogic) Analysis {
+	return analyses{Analysis: analysis}
+}
+
+
+func (a analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	/*
 	token := r.Header.Get("token")
 
 	//TODO https://gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/-/issues/2
@@ -37,6 +44,7 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(401)
 		return
 	}
+	*/
 
 	switch r.Method {
 	// handle all http methods without get and post
@@ -65,7 +73,7 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// receive the result, which should be send to the client
-			resSet, err := a.Analyses.GetResultSet(contractId, parsedQuery)
+			resSet, err := a.Analysis.GetResultSet(contractId, parsedQuery)
 			if err != nil {
 				klog.Errorf("could not query result set: %v\n", err)
 				w.WriteHeader(500)
@@ -126,7 +134,7 @@ func (a Analyses) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// convert json to used data types
-		var data []models_database.UploadResult
+		var data []Analyse
 		if err := json.Unmarshal(body, &data); err != nil {
 			klog.Errorf("could not parse data: %s\n", err)
 			w.WriteHeader(400)

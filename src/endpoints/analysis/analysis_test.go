@@ -1,5 +1,5 @@
 // build +unit
-package endpoints
+package analyse
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/models_database"
 )
 
@@ -17,9 +18,9 @@ import (
 
 type testAnalysis struct{}
 
-func (a testAnalysis) Analyses(d database.Postgres) {}
+func (a testAnalysis) Analyses() {}
 
-func (a testAnalysis) InsertResult(id, contract, sensor string, data []models_database.UploadResult) error {
+func (a testAnalysis) InsertResult(id, contract, sensor string, data ) error {
 	switch id {
 	case "error":
 		return fmt.Errorf("error")
@@ -39,7 +40,7 @@ func (a testAnalysis) GetSpecificResult(id, contract string) ([]byte, error) {
 	}
 }
 
-func (a testAnalysis) GetResultSet(id string, query map[string][]string) ([]models_database.ResultList, error) {
+func (a testAnalysis) GetResultSet(id string, query map[string][]string) (, error) {
 	switch id {
 	case "error":
 		return nil, fmt.Errorf("error")
@@ -52,7 +53,7 @@ func (a testAnalysis) GetResultSet(id string, query map[string][]string) ([]mode
 	}
 }
 
-var analyses Analyses = Analyses{Auth: AuthTest{}, Analyses: testAnalysis{}}
+var analyses Analyses = Analyses{Auth: endpoints.AuthTest{}, Analyses: testAnalysis{}}
 
 func TestAnalysesPost(t *testing.T) {
 

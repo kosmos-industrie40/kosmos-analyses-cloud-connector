@@ -1,10 +1,14 @@
-package models
+package analyse
+
+import (
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/contract"
+)
 
 type Analyse struct {
-	From string `json:"from"`
-	Timestamp string `json:"timestamp"`
-	Model Model `json:"model"`
-	Type string `json:"type"`
+	From       string         `json:"from"`
+	Timestamp  string         `json:"timestamp"`
+	Model      contract.Model `json:"model"`
+	Type       string         `json:"type"`
 	Calculated struct{
 		Message struct {
 			Machine string `json:"machine"`

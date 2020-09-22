@@ -1,12 +1,12 @@
-package endpoints
+package auth
 
 import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/models_database"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/logic"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/models_database"
 
 	"k8s.io/klog"
 )

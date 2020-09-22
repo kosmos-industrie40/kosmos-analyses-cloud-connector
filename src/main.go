@@ -10,7 +10,12 @@ import (
 	"k8s.io/klog"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/config"
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/analysis"
+	contract2 "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/contract"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/health"
+	machineData2 "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/machineData"
+	model2 "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/model"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/ready"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/logic"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/mqtt"
 )
@@ -84,20 +89,20 @@ func main() {
 	//cont.Contract(db)
 
 	klog.Infof("define endpoints")
-	var auth http.Handler = endpoints.Auth{Auth: authentication}
-	var contract http.Handler = endpoints.Contract{Auth: authentication, Contract: cont}
-	var machineData http.Handler = endpoints.MachineData{SendChan: sendChan, Auth: authentication}
-	var analysesResult http.Handler = endpoints.Analyses{Auth: authentication, Analyses: ana}
-	var model http.Handler = endpoints.Model{Auth: authentication, Model: modelLogic}
+	var auth http.Handler = machineData2.Auth{Auth: authentication}
+	var contract http.Handler = contract2.Contract{Auth: authentication, Contract: cont}
+	var machineData http.Handler = machineData2.MachineData{SendChan: sendChan, Auth: authentication}
+	var analysesResult http.Handler = analysis.Analyses{Auth: authentication, Analyses: ana}
+	var model http.Handler = model2.Model{Auth: authentication, Model: modelLogic}
 
 	// paths
 	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/analyses/", analysesResult)
 	http.Handle("/machine-data/", machineData)
 	http.Handle("/auth", auth)
-	http.Handle("/health", new(endpoints.Health))
+	http.Handle("/health", new(health.Health))
 	http.Handle("/model/", model)
-	http.Handle("/ready", new(endpoints.Ready))
+	http.Handle("/ready", new(ready.Ready))
 	http.Handle("/contract/", contract)
 
 	klog.Infof("start webserver")
