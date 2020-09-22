@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"k8s.io/klog"
@@ -17,11 +18,11 @@ type Analysis interface {
 }
 
 type analysis struct {
-	authHelper auth.AuthHelper
+	authHelper auth.Helper
 	analysis   AnalyseLogic
 }
 
-func NewAnalysisEndpoint(analysisLogic AnalyseLogic, authHelper auth.AuthHelper) Analysis {
+func NewAnalysisEndpoint(analysisLogic AnalyseLogic, authHelper auth.Helper) Analysis {
 	return analysis{analysis: analysisLogic, authHelper: authHelper}
 }
 
@@ -52,7 +53,7 @@ func (a analysis) handlePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// handle request
-	if err := a.analysis.InsertResult(path, data); err != nil {
+	if err := a.analysis.InsertResult(ur[2], ur[3], ur[4], data); err != nil {
 		w.WriteHeader(500)
 		klog.Errorf("could not insert data: %s\n", err)
 		return
@@ -117,7 +118,15 @@ func (a analysis) handleGet(w http.ResponseWriter, r *http.Request) {
 
 	case 4:
 		// query specific analyses
-		ret, err := a.analysis.GetSpecificResult(path)
+
+		resultId, err := strconv.ParseInt(ur[3], 10, 64)
+		if err != nil {
+			klog.Errorf("cannot parse result id to type")
+			w.WriteHeader(400)
+			return
+		}
+
+		ret, err := a.analysis.GetSpecificResult(ur[2], resultId)
 		if err != nil {
 			klog.Errorf("could not query specific result: %s\n", err)
 			w.WriteHeader(500)

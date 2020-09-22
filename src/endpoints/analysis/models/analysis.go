@@ -107,18 +107,26 @@ func (a Analysis) Validate() bool {
 	if _, err := time.Parse(time.RFC3339, a.Timestamp); err != nil {
 		return false
 	}
+	result, err := json.Marshal(a.Results)
+	if err != nil {
+		klog.Errorf("unexpected error in marshaling analysis: %s", err)
+		return false
+	}
 
-	switch a.Results.(type) {
-	case TextResult:
-		if a.Type != "text" {
+	switch a.Type {
+	case "text":
+		var text TextResult
+		if err := json.Unmarshal(result, &text); err != nil {
 			return false
 		}
-	case TimeSeriesResult:
-		if a.Type != "time_series" {
+	case "time_series":
+		var timeSeriesResult TimeSeriesResult
+		if err := json.Unmarshal(result, &timeSeriesResult); err != nil {
 			return false
 		}
-	case []TimeSeriesResult:
-		if a.Type != "multiple_time_series" {
+	case "multiple_time_series":
+		var mTimeSeriesResult []TimeSeriesResult
+		if err := json.Unmarshal(result, &mTimeSeriesResult); err != nil {
 			return false
 		}
 	default:

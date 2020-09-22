@@ -131,7 +131,7 @@ func (r resultListHandler) Get(contractID string, queryParams map[string][]strin
 
 	query, err := r.db.Query(fmt.Sprintf("SELECT ar.id, ar.time, ms.machine FROM analyse_result AS ar JOIN contract_machine_sensors cms on cms.id = ar.contract_machine_sensor JOIN machine_sensors ms on cms.machine_sensor = ms.id %s", where), argWhere...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("return query: %s", err)
 	}
 
 	defer func() {
@@ -141,7 +141,7 @@ func (r resultListHandler) Get(contractID string, queryParams map[string][]strin
 	}()
 
 	var res []resultList
-	for !query.Next() {
+	for query.Next() {
 		var id int64
 		var machineID, timestamp string
 
