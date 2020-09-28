@@ -1,9 +1,11 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/klog"
@@ -53,10 +55,11 @@ func main() {
 	)
 
 	klog.Infof("conString: %s\n", conStr)
-	//db, err := sql.Open("postgres", conStr)
-	//if err != nil {
-	//	panic(err)
-	//}
+	db, err := sql.Open("postgres", conStr)
+	if err != nil {
+		klog.Errorf("cannot connect to db: %s", err)
+		os.Exit(1)
+	}
 
 	klog.Infof("connect to database")
 	var mqttCo mqtt.Mqtt
@@ -64,7 +67,8 @@ func main() {
 	sendChan := make(chan mqtt.Msg, 100)
 	er := make(chan error)
 	if err := mqttCon.Init(pas.Mqtt.User, pas.Mqtt.Password, conf.Mqtt.Address, conf.Mqtt.Port, false, sendChan, er); err != nil {
-		panic(err)
+		klog.Errorf("cannot connect to mqtt broker: %s", err)
+		os.Exit(1)
 	}
 
 	go func() {
@@ -86,7 +90,9 @@ func main() {
 	//modelLogic.Model(db)
 	//cont.Contract(db)
 
-	authHelper := auth.NewAuthHelper()
+	var authHandler http.Handler
+	authHelper := auth.NewAuthHelper(db)
+	authHandler, err  = auth.NewOidcAuth(conf.UserMgmt.UserMgmt, conf.UserMgmt.UserRealm, conf.UserMgmt.BasePath, pas.UserMgmt.ClientSecret, pas.UserMgmt.ClientId, conf.UserMgmt.ServerAddress)
 
 	klog.Infof("define endpoints")
 	machineHandler := machineData.NewMachineDataEndpoint(sendChan, authHelper)
@@ -98,13 +104,13 @@ func main() {
 		var model http.Handler = model2.Model{Auth: authentication, Model: modelLogic}
 	*/
 	// paths
+	http.Handle("/auth", authHandler)
 	http.Handle("/health", new(health.Health))
 	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/machine-data", machineHandler)
 	http.Handle("/ready", new(ready.Ready))
 
 	//http.Handle("/analyses/", analysesResult)
-	//http.Handle("/auth", auth)
 	//http.Handle("/model/", model)
 	//http.Handle("/contract/", contract)
 
