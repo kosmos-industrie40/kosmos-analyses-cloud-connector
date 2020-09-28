@@ -1,51 +1,198 @@
 package auth
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"regexp"
 
-	oidc "github.com/coreos/go-oidc"
+	"github.com/coreos/go-oidc"
+	"github.com/google/uuid"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
+	"k8s.io/klog"
 )
 
-type Oidc struct {
-	oidcConfig *oidc.Config
-	verifier   *oidc.IDTokenVerifier
-	config     oauth2.Config
+type Auth interface {
+	ServeHTTP(http.ResponseWriter, *http.Request)
 }
 
-// CreateOidc will create an oidc object, which can be used as authorisation endpoint
-func (o *Oidc) CreateOidc(clientID, clientSecret, redirectURL, endpoint string) error {
+type oidcAuth struct {
+	oidcConfig    *oidc.Config
+	verifier      *oidc.IDTokenVerifier
+	config        oauth2.Config
+	state         string
+	regexBase     *regexp.Regexp
+	regexCallback *regexp.Regexp
+	helper        Helper
+	generator     TokenGenerate
+}
+
+func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAddress string) (Auth, error) {
+
 	ctx := context.Background()
-	provider, err := oidc.NewProvider(ctx, endpoint)
+	issuer := fmt.Sprintf("%s/auth/realms/%s", userMgmt, userRealm)
+
+	provider, err := oidc.NewProvider(ctx, issuer)
 	if err != nil {
-		return err
+		return oidcAuth{}, fmt.Errorf("cannot create auth provider: %s", err)
 	}
 
 	oidcConfig := &oidc.Config{
-		ClientID: clientID,
+		ClientID: clientId,
 	}
 
 	verifier := provider.Verifier(oidcConfig)
 
 	config := oauth2.Config{
-		ClientID:     clientID,
+		ClientID:     clientId,
 		ClientSecret: clientSecret,
 		Endpoint:     provider.Endpoint(),
-		RedirectURL:  redirectURL,
-		Scopes:       []string{oidc.ScopeOpenID, "groups", "roles", "profile"},
+		RedirectURL:  fmt.Sprintf("%s/%s/callback", serverAddress, basePath),
 	}
 
-	o.oidcConfig = oidcConfig
-	o.verifier = verifier
-	o.config = config
+	state := uuid.New().String()
 
-	return nil
+	regexBase := regexp.MustCompile(fmt.Sprintf("/%s[/]?$", basePath))
+	regexCallback := regexp.MustCompile(fmt.Sprintf("/%s/callback[/]?$", basePath))
+
+	oidcDat := oidcAuth{
+		oidcConfig:    oidcConfig,
+		verifier:      verifier,
+		config:        config,
+		state:         state,
+		regexBase:     regexBase,
+		regexCallback: regexCallback,
+		generator:     NewTokenGeneratorUuid(),
+	}
+
+	klog.Infof("using basePath: %s and %s/callback as registered endpoints", basePath, basePath)
+
+	return oidcDat, nil
 }
 
-func (o Oidc) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (o oidcAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("token")
+	if token != "" {
+		o.handleWithToken(w, r)
+		return
+	}
+
+	url := r.URL.String()
+	if o.regexBase.MatchString(url) {
+		o.handleBase(w, r)
+		return
+	}
+
+	if o.regexCallback.MatchString(url) {
+		o.handleCallback(w, r)
+		return
+	}
+
+	w.WriteHeader(http.StatusBadRequest)
+	return
 }
 
-func User() (string, []string, []string, error) {
-	return "", nil, nil, nil
+func (o oidcAuth) handleBase(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	default:
+		klog.Infof("receive request %s in base", r.Method)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	case http.MethodPost:
+		klog.Infof("receive request POST in base")
+		http.Redirect(w, r, o.config.AuthCodeURL(o.state), http.StatusFound)
+		return
+	}
+}
+
+func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	default:
+		klog.Infof("receive request %s in callback", r.Method)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	case http.MethodGet:
+		klog.Infof("receive request GET in callback")
+		if r.URL.Query().Get("state") != o.state {
+			klog.Errorf("state did not match")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		oauth2Token, err := o.config.Exchange(context.Background(), r.URL.Query().Get("code"))
+		if err != nil {
+			klog.Errorf("Failed to exchange token: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+		if !ok {
+			klog.Errorf("no id_token filed in oauth2 token")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		idToken, err := o.verifier.Verify(context.Background(), rawIDToken)
+		if err != nil {
+			klog.Errorf("Failed to verify ID Token: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		oauth2Token.AccessToken = "*REDACTED*"
+
+		var claims struct {
+			Groups []string `json:"groups"`
+		}
+
+		if err := idToken.Claims(&claims); err != nil {
+			klog.Errorf("cannot get id claims: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		token := struct {
+			Token string `json:"token"`
+		}{
+			o.generator.Generate(),
+		}
+
+		if err := o.helper.CreateSession(token.Token, claims.Groups, idToken.Expiry); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			klog.Errorf("cannot create session: %s", err)
+			return
+		}
+
+		data, err := json.Marshal(token)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			klog.Errorf("cannot marshal token: %s", err)
+			return
+		}
+
+		if _, err := w.Write(data); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			klog.Errorf("cannot send token: %s", err)
+			return
+		}
+	}
+}
+
+func (o oidcAuth) handleWithToken(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodDelete:
+		klog.Infof("receive DELETE request with token")
+		if err := o.helper.DeleteSession(r.Header.Get("token")); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+		return
+	default:
+		klog.Infof("receive request %s with token", r.Method)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
 }
