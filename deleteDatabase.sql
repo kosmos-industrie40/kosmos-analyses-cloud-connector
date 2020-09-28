@@ -24,6 +24,10 @@ DROP TABLE contract_machine_sensors CASCADE;
 
 DROP TABLE analyse_result CASCADE;
 
+DROP TABLE token CASCADE;
+
+DROP TABLE token_permission CASCADE;
+
 DROP TABLE pipelines CASCADE;
 
 DROP TABLE analyses CASCADE;

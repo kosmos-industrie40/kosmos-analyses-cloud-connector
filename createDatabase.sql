@@ -1,7 +1,7 @@
 BEGIN;
 CREATE TABLE IF NOT EXISTS systems (
 	id bigserial PRIMARY KEY,
-	name text UNIQUE
+	name text UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS contracts (
@@ -138,6 +138,19 @@ CREATE TABLE IF NOT EXISTS read_permissions (
 	contract TEXT REFERENCES contracts,
 	organisation BIGINT REFERENCES organisations,
 	UNIQUE(contract, organisation)
+);
+
+CREATE TABLE IF NOT EXISTS token (
+    token TEXT PRIMARY KEY ,
+    valid TIMESTAMPTZ NOT NULL,
+    CONSTRAINT token_valid CHECK (valid > NOW())
+);
+
+CREATE TABLE IF NOT EXISTS token_permission (
+    token TEXT NOT NULL,
+    organisation BIGINT NOT NULL,
+    CONSTRAINT token_permission_token_fk FOREIGN KEY (token) REFERENCES token(token) ON DELETE CASCADE,
+    CONSTRAINT token_permission_organisation_fk FOREIGN KEY (organisation) REFERENCES organisations(id) ON DELETE CASCADE
 );
 
 COMMIT;
