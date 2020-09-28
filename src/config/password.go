@@ -10,4 +10,8 @@ type Password struct {
 		User     string `yaml:"user"`
 		Password string `yaml:"password"`
 	} `yaml:"database"`
+	UserMgmt struct {
+		ClientId     string `yaml:"clientID"`
+		ClientSecret string `yaml:"clientSecret"`
+	} `yaml:"userMgmt"`
 }

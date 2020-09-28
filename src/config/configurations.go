@@ -15,4 +15,10 @@ type Configurations struct {
 		Address string `yaml:"address"`
 		Port    int    `yaml:"port"`
 	} `yaml:"mqtt"`
+	UserMgmt struct {
+		UserMgmt      string `yaml:"userMgmt"`
+		UserRealm     string `yaml:"userRealm"`
+		BasePath      string `yaml:"basePath"`
+		ServerAddress string `yaml:"serverAddress"`
+	} `yaml:"userMgmt"`
 }
