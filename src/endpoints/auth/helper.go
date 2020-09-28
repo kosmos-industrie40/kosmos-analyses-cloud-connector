@@ -48,15 +48,16 @@ func (a helperOidc) cleanUp() error {
 
 func (a helperOidc) CleanUp() {
 	for {
-		time.Sleep(time.Hour)
 		if err := a.cleanUp(); err != nil {
 			klog.Error(err)
 		}
+		time.Sleep(time.Hour)
 	}
 }
 
 func (a helperOidc) CreateSession(token string, organisations []string, valid time.Time) error {
-	query, err := a.db.Query("SELECT id FROM organisations WHERE name in ($1)", strings.Join(organisations, ","))
+	klog.Infof("organisations: %s", fmt.Sprintf("'%s'", strings.Join(organisations, "','")))
+	query, err := a.db.Query(fmt.Sprintf("SELECT id FROM organisations WHERE name in (%s)", fmt.Sprintf("'%s'", strings.Join(organisations, "','"))))
 	if err != nil {
 		return err
 	}
@@ -75,6 +76,8 @@ func (a helperOidc) CreateSession(token string, organisations []string, valid ti
 
 		orgs = append(orgs, organisation)
 	}
+
+	klog.Infof("orgs: %v", orgs)
 
 	if len(orgs) == 0 {
 		return fmt.Errorf("no matching organisations found")

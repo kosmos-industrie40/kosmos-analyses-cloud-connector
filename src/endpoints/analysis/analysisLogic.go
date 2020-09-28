@@ -15,7 +15,7 @@ type AnalyseLogic interface {
 
 type analyseLogic struct {
 	analysisHandler models.AnalysisHandler
-	resultHandler models.ResultListHandler
+	resultHandler   models.ResultListHandler
 }
 
 func NewAnalyseLogic(resultHandler models.ResultListHandler, analysisHandler models.AnalysisHandler) AnalyseLogic {
@@ -35,18 +35,16 @@ func (a analyseLogic) GetSpecificResult(contractID string, resultID int64) ([]by
 	return json.Marshal(data)
 }
 
-
 func (a analyseLogic) InsertResult(contractID, machineID, sensorId string, models []models.Analysis) error {
 	for _, model := range models {
 		if !model.Validate() {
 			return fmt.Errorf("on of the transmitted models is not valid")
 		}
 
-		if err :=  a.analysisHandler.Insert(contractID, machineID, sensorId, model); err != nil {
+		if err := a.analysisHandler.Insert(contractID, machineID, sensorId, model); err != nil {
 			return err
 		}
 	}
 
 	return nil
 }
-

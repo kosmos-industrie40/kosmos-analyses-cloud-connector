@@ -28,10 +28,11 @@ type oidcAuth struct {
 	generator     TokenGenerate
 }
 
-func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAddress string) (Auth, error) {
+func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAddress string, helper Helper) (Auth, error) {
 
 	ctx := context.Background()
 	issuer := fmt.Sprintf("%s/auth/realms/%s", userMgmt, userRealm)
+	klog.Infof("issuer url: %s", issuer)
 
 	provider, err := oidc.NewProvider(ctx, issuer)
 	if err != nil {
@@ -49,6 +50,7 @@ func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAd
 		ClientSecret: clientSecret,
 		Endpoint:     provider.Endpoint(),
 		RedirectURL:  fmt.Sprintf("%s/%s/callback", serverAddress, basePath),
+		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 
 	state := uuid.New().String()
@@ -64,6 +66,7 @@ func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAd
 		regexBase:     regexBase,
 		regexCallback: regexCallback,
 		generator:     NewTokenGeneratorUuid(),
+		helper:        helper,
 	}
 
 	klog.Infof("using basePath: %s and %s/callback as registered endpoints", basePath, basePath)
@@ -72,13 +75,14 @@ func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAd
 }
 
 func (o oidcAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	klog.Infof("request url: %s", r.URL.Path)
 	token := r.Header.Get("token")
 	if token != "" {
 		o.handleWithToken(w, r)
 		return
 	}
 
-	url := r.URL.String()
+	url := r.URL.Path
 	if o.regexBase.MatchString(url) {
 		o.handleBase(w, r)
 		return
@@ -89,31 +93,31 @@ func (o oidcAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusNotFound)
 	return
 }
 
 func (o oidcAuth) handleBase(w http.ResponseWriter, r *http.Request) {
+	klog.Infof("receive request %s in base", r.Method)
 	switch r.Method {
 	default:
-		klog.Infof("receive request %s in base", r.Method)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
+	case http.MethodGet:
+		fallthrough
 	case http.MethodPost:
-		klog.Infof("receive request POST in base")
-		http.Redirect(w, r, o.config.AuthCodeURL(o.state), http.StatusFound)
+		http.Redirect(w, r, o.config.AuthCodeURL(o.state), http.StatusTemporaryRedirect)
 		return
 	}
 }
 
 func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
+	klog.Infof("receive request %s in callback", r.Method)
 	switch r.Method {
 	default:
-		klog.Infof("receive request %s in callback", r.Method)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	case http.MethodGet:
-		klog.Infof("receive request GET in callback")
 		if r.URL.Query().Get("state") != o.state {
 			klog.Errorf("state did not match")
 			w.WriteHeader(http.StatusBadRequest)
@@ -129,7 +133,7 @@ func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
 
 		rawIDToken, ok := oauth2Token.Extra("id_token").(string)
 		if !ok {
-			klog.Errorf("no id_token filed in oauth2 token")
+			klog.Errorf("no id_token field in oauth2 token: %v", oauth2Token.Extra("id_token"))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -152,6 +156,7 @@ func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		klog.Infof("groups: %v", claims.Groups)
 
 		token := struct {
 			Token string `json:"token"`
@@ -172,6 +177,7 @@ func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		w.Header().Add("Content-Type", "application/json")
 		if _, err := w.Write(data); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			klog.Errorf("cannot send token: %s", err)

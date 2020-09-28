@@ -81,10 +81,6 @@ func (a analysis) handlePost(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (a analysis) permission(w http.ResponseWriter, r *http.Request) {
-
-}
-
 func (a analysis) handleGet(w http.ResponseWriter, r *http.Request) {
 	// removing the trailing /
 	path := strings.TrimRight(r.URL.Path, "/")
@@ -101,6 +97,8 @@ func (a analysis) handleGet(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
+
+	klog.Infof("authentication is: %t", isAuth)
 
 	if !isAuth {
 		w.WriteHeader(statusCode)
@@ -167,7 +165,7 @@ func (a analysis) handleGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a analysis) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
+	klog.Infof("receive http request on url: %s and with method: %s", r.URL.String(), r.Method)
 	switch r.Method {
 	// handle all http methods without get and post
 	default:
