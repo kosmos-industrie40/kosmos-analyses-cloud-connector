@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/analysis/models"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/auth"
@@ -47,7 +48,19 @@ func (t testResultHandler) Get(contract string, query map[string][]string) ([]by
 
 type testAuthHelper struct{}
 
-func (testAuthHelper) IsAuthenticated(r *http.Request) (bool, int, error) {
+func (testAuthHelper) CreateSession(s string, i []string, t time.Time) error {
+	panic("implement me")
+}
+
+func (testAuthHelper) DeleteSession(s string) error {
+	panic("implement me")
+}
+
+func (testAuthHelper) CleanUp() {
+	panic("implement me")
+}
+
+func (testAuthHelper) IsAuthenticated(r *http.Request, contract string, write bool) (bool, int, error) {
 	return true, 0, nil
 }
 

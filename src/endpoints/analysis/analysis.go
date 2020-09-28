@@ -29,6 +29,24 @@ func NewAnalysisEndpoint(analysisLogic AnalyseLogic, authHelper auth.Helper) Ana
 func (a analysis) handlePost(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimRight(r.URL.Path, "/")
 	ur := strings.Split(path, "/")
+
+	if len(ur) < 3 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	isAuth, statusCode, err := a.authHelper.IsAuthenticated(r, ur[2], true)
+	if err != nil {
+		klog.Errorf("cannot check authentication %s", err)
+		w.WriteHeader(500)
+		return
+	}
+
+	if !isAuth {
+		w.WriteHeader(statusCode)
+		return
+	}
+
 	// not enough parameter are transmitted
 	if len(ur) != 5 {
 		klog.Errorf("unexpected length of url path: %d\n", len(ur))
@@ -63,9 +81,21 @@ func (a analysis) handlePost(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (a analysis) handleGet(w http.ResponseWriter, r *http.Request) {
+func (a analysis) permission(w http.ResponseWriter, r *http.Request) {
 
-	isAuth, statusCode, err := a.authHelper.IsAuthenticated(r)
+}
+
+func (a analysis) handleGet(w http.ResponseWriter, r *http.Request) {
+	// removing the trailing /
+	path := strings.TrimRight(r.URL.Path, "/")
+	ur := strings.Split(path, "/")
+
+	if len(ur) < 3 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	isAuth, statusCode, err := a.authHelper.IsAuthenticated(r, ur[2], false)
 	if err != nil {
 		klog.Errorf("cannot check authentication %s", err)
 		w.WriteHeader(500)
@@ -77,9 +107,6 @@ func (a analysis) handleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// removing the trailing /
-	path := strings.TrimRight(r.URL.Path, "/")
-	ur := strings.Split(path, "/")
 	switch len(ur) {
 	// not enough parameter are transmitted through the URL
 	default:
