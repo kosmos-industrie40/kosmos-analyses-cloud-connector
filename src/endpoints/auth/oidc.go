@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/coreos/go-oidc"
 	"github.com/google/uuid"
@@ -145,7 +146,10 @@ func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		oauth2Token.AccessToken = "*REDACTED*"
+		// the access token, can be used as authorisation token
+		// in this application we didn't use it, because it should
+		// be easy possible to add other authentication mechnismen
+		//oauth2Token.AccessToken = "*REDACTED*"
 
 		var claims struct {
 			Groups []string `json:"groups"`
@@ -159,9 +163,11 @@ func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
 		klog.Infof("groups: %v", claims.Groups)
 
 		token := struct {
-			Token string `json:"token"`
+			Token string    `json:"token"`
+			Valid time.Time `json:"valid"`
 		}{
 			o.generator.Generate(),
+			oauth2Token.Expiry,
 		}
 
 		if err := o.helper.CreateSession(token.Token, claims.Groups, idToken.Expiry); err != nil {
