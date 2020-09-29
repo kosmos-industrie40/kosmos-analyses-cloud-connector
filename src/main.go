@@ -7,10 +7,13 @@ import (
 	"net/http"
 	"os"
 
+	_ "github.com/lib/pq"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"k8s.io/klog"
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/config"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/analysis"
+	analysisModel "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/analysis/models"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/auth"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/health"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/machineData"
@@ -27,6 +30,34 @@ func init() {
 	klog.InitFlags(nil)
 	flag.StringVar(&cli.password, "pass", "examplePassword.yaml", "is the path to the password configuration")
 	flag.StringVar(&cli.configuration, "config", "exampleConfiguration.yaml", "is the path to the configuration file")
+}
+
+func dbVersion(db *sql.DB) {
+	version, err := db.Query("SELECT version()")
+	if err != nil {
+		klog.Errorf("cannot select db version:  %s", err)
+		os.Exit(1)
+	}
+
+	defer func() {
+		if err := version.Close(); err != nil {
+			klog.Errorf("cannot close db query: %s", err)
+			os.Exit(1)
+		}
+	}()
+
+	if !version.Next() {
+		klog.Errorf("no result found")
+		os.Exit(1)
+	}
+
+	var versionString string
+	if err := version.Scan(&versionString); err != nil {
+		klog.Errorf("cannot use string as return variable: %s\n")
+		os.Exit(1)
+	}
+
+	klog.Infof("database version string: %s", versionString)
 }
 
 func main() {
@@ -54,14 +85,15 @@ func main() {
 		conf.Database.Database,
 	)
 
-	klog.Infof("conString: %s\n", conStr)
 	db, err := sql.Open("postgres", conStr)
 	if err != nil {
 		klog.Errorf("cannot connect to db: %s", err)
 		os.Exit(1)
 	}
-
 	klog.Infof("connect to database")
+
+	dbVersion(db)
+
 	var mqttCo mqtt.Mqtt
 	mqttCon := &mqttCo
 	sendChan := make(chan mqtt.Msg, 100)
@@ -90,25 +122,33 @@ func main() {
 	//modelLogic.Model(db)
 	//cont.Contract(db)
 
-	var authHandler http.Handler
 	authHelper := auth.NewAuthHelper(db)
-	authHandler, err  = auth.NewOidcAuth(conf.UserMgmt.UserMgmt, conf.UserMgmt.UserRealm, conf.UserMgmt.BasePath, pas.UserMgmt.ClientSecret, pas.UserMgmt.ClientId, conf.UserMgmt.ServerAddress)
+
+	go authHelper.CleanUp()
+
+	authHandler, err := auth.NewOidcAuth(conf.UserMgmt.UserMgmt, conf.UserMgmt.UserRealm, conf.UserMgmt.BasePath, pas.UserMgmt.ClientSecret, pas.UserMgmt.ClientId, conf.UserMgmt.ServerAddress, authHelper)
+	if err != nil {
+		klog.Errorf("cannot create new oidc handler: %s", err)
+		os.Exit(1)
+	}
+
+	contractMachineDataHandler := machineData.NewPsqlContract(db)
 
 	klog.Infof("define endpoints")
-	machineHandler := machineData.NewMachineDataEndpoint(sendChan, authHelper)
-	/*
-		var auth http.Handler = machineData2.Auth{Auth: authentication}
-		var contract http.Handler = contract2.Contract{Auth: authentication, Contract: cont}
-		var machineData http.Handler = machineData2.MachineData{SendChan: sendChan, Auth: authentication}
-		var analysesResult http.Handler = analysis.Analyses{Auth: authentication, Analyses: ana}
-		var model http.Handler = model2.Model{Auth: authentication, Model: modelLogic}
-	*/
-	// paths
+	machineHandler := machineData.NewMachineDataEndpoint(sendChan, authHelper, contractMachineDataHandler)
+
+	analysisHandler := analysisModel.NewAnalysisHandler(db)
+	analysisResultListHandler := analysisModel.NewResultList(db)
+	analysisLogic := analysis.NewAnalyseLogic(analysisResultListHandler, analysisHandler)
+	analysisEndpoint := analysis.NewAnalysisEndpoint(analysisLogic, authHelper)
+
 	http.Handle("/auth", authHandler)
+	http.Handle("/auth/", authHandler)
 	http.Handle("/health", new(health.Health))
 	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/machine-data", machineHandler)
 	http.Handle("/ready", new(ready.Ready))
+	http.Handle("/analysis/", analysisEndpoint)
 
 	//http.Handle("/analyses/", analysesResult)
 	//http.Handle("/model/", model)
