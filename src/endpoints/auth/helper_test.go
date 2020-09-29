@@ -16,14 +16,14 @@ import (
 func TestHelperOidc_IsAuthenticated(t *testing.T) {
 	testTable := []struct {
 		description string
-		token string
-		err error
-		statusCode int
+		token       string
+		err         error
+		statusCode  int
 		writeAccess bool
 		authSuccess bool
-		contract string
-		validRows *dbMock.Rows
-		orgRows *dbMock.Rows
+		contract    string
+		validRows   *dbMock.Rows
+		orgRows     *dbMock.Rows
 	}{
 		{
 			"success no write",
@@ -99,10 +99,10 @@ func TestHelperOidc_IsAuthenticated(t *testing.T) {
 }
 
 func TestHelperOidc_cleanUp(t *testing.T) {
-	testTable := []struct{
+	testTable := []struct {
 		description string
-		result driver.Result
-		err error
+		result      driver.Result
+		err         error
 	}{
 		{
 			"success",
@@ -139,15 +139,15 @@ func TestHelperOidc_cleanUp(t *testing.T) {
 func TestHelperOidc_CreateSession(t *testing.T) {
 	testTable := []struct {
 		description string
-		orgs []struct{
+		orgs        []struct {
 			name string
-			id int64
+			id   int64
 		}
-		orgRows *dbMock.Rows
-		token string
-		valid time.Time
+		orgRows     *dbMock.Rows
+		token       string
+		valid       time.Time
 		tokenResult driver.Result
-		err error
+		err         error
 	}{
 		{
 			"success",
@@ -211,13 +211,13 @@ func TestHelperOidc_CreateSession(t *testing.T) {
 func TestHelperOidc_DeleteSession(t *testing.T) {
 	testTable := []struct {
 		description string
-		result driver.Result
-		token string
-		err error
-	} {
+		result      driver.Result
+		token       string
+		err         error
+	}{
 		{
 			"delete session success",
-			dbMock.NewResult(0,0),
+			dbMock.NewResult(0, 0),
 			"token",
 			nil,
 		},
@@ -245,6 +245,71 @@ func TestHelperOidc_DeleteSession(t *testing.T) {
 
 			if !reflect.DeepEqual(err, v.err) {
 				t.Errorf("expected error != returned err\n\t%s != %s", v.err, err)
+			}
+		})
+	}
+}
+
+func TestHelperOidc_TokenValid(t *testing.T) {
+	testTable := []struct {
+		description string
+		token       string
+		err         error
+		tokenValid  bool
+		rows        *dbMock.Rows
+	}{
+		{
+			"empty token",
+			"",
+			nil,
+			false,
+			nil,
+		},
+		{
+			"success",
+			"token",
+			nil,
+			true,
+			dbMock.NewRows([]string{"token", "valid"}).AddRow("token", "2020-08-21T11:00:88.123Z"),
+		},
+		{
+			"nothing found",
+			"token",
+			nil,
+			false,
+			dbMock.NewRows([]string{"token", "valid"}),
+		},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.description, func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodGet, "something", nil)
+			if err != nil {
+				t.Fatalf("cannot create http request")
+			}
+
+			db, mock, err := dbMock.New()
+			if err != nil {
+				t.Fatalf("cannot create mocked databse: %s", err)
+			}
+
+			if v.token != "" {
+				mock.ExpectQuery("SELECT * FROM token").
+					WithArgs(v.token).
+					WillReturnRows(v.rows)
+			}
+
+			defer db.Close()
+
+			helper := helperOidc{db: db}
+			valid, err := helper.TokenValid(req)
+
+			if !reflect.DeepEqual(err, v.err) {
+				klog.Errorf("returned error != expected error\n\t%s != %s", err, v.err)
+			}
+
+			if valid != v.tokenValid {
+				klog.Errorf("returned validation != expected validation\n\t%t != %t", valid, v.tokenValid)
 			}
 		})
 	}

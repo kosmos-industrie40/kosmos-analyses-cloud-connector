@@ -26,10 +26,38 @@ type Helper interface {
 
 	// CleanUp will run every hour and will remove all invalid tokens
 	CleanUp()
+
+	// TokenValid checks if a token is valid and can be used or not
+	TokenValid(r *http.Request) (bool, error)
 }
 
 type helperOidc struct {
 	db *sql.DB
+}
+
+func (a helperOidc) TokenValid(r *http.Request) (bool, error) {
+
+	token := r.Header.Get("token")
+	if token == "" {
+		return false, nil
+	}
+
+	query, err := a.db.Query("SELECT * FROM token WHERE token = $1 AND valid >= NOW()", token)
+	if err != nil {
+		return false, err
+	}
+
+	defer func(){
+		if err := query.Close(); err != nil {
+			klog.Errorf("cannot close query object: %s", err)
+		}
+	}()
+
+	if !query.Next() {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (a helperOidc) cleanUp() error {
