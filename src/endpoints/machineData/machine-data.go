@@ -9,7 +9,7 @@ import (
 
 	"k8s.io/klog"
 
-	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoint/auth"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/auth"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/mqtt"
 	mqttModels "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/mqtt/models"
 )
@@ -18,26 +18,17 @@ type MachineData interface {
 	ServeHTTP(http.ResponseWriter, *http.Request)
 }
 
-func NewMachineDataEndpoint(sendChan chan mqtt.Msg, authHelper auth.AuthHelper) MachineData {
-	return machineData{sendChan: sendChan, auth: auth.AuthHelper}
+func NewMachineDataEndpoint(sendChan chan mqtt.Msg, authHelper auth.Helper, contract Contract) MachineData {
+	return machineData{sendChan: sendChan, auth: authHelper, contr: contract}
 }
 
 type machineData struct {
 	sendChan chan mqtt.Msg
-	auth     auth.AuthHelper
+	auth     auth.Helper
+	contr Contract
 }
 
 func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
-	authenticated, statusCode, err := m.auth.IsAuthenticated(r)
-	if err != nil {
-		klog.Errorf("cannot check authentication: %s", err)
-	}
-
-	if !authenticated {
-		w.WriteHeader(statusCode)
-		return
-	}
 
 	switch r.Method {
 	// handle requests of all other http methods
@@ -75,6 +66,28 @@ func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if _, err := time.Parse(time.RFC3339, dat.Timestamp); err != nil {
 				klog.Errorf("cannot validate timestamp: %s", err)
 				w.WriteHeader(400)
+				return
+			}
+
+			authenticated := false
+			var statusCode int
+			var err error
+			contracts, err := m.contr.GetContracts(dat.Machine, dat.Sensor)
+			for _, cont := range contracts {
+				authenticated, statusCode, err = m.auth.IsAuthenticated(r, cont, true)
+				if err != nil {
+					klog.Errorf("cannot check authentication: %s", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+
+				if authenticated {
+					break
+				}
+			}
+
+			if !authenticated {
+				w.WriteHeader(statusCode)
 				return
 			}
 
