@@ -56,31 +56,34 @@ func TestAnalysis_Validate(t *testing.T) {
 	}
 }
 
+
 var ana = Analysis{
-	From:      "from",
-	Timestamp: "timestamp",
-	Model: Model{
-		URL: "url",
-		Tag: "tag",
-	},
-	Type: "text",
-	Calculated: struct {
-		Message struct {
-			Machine string `json:"machine"`
-			Sensor  string `json:"sensor"`
-		} `json:"message"`
-		Received string `json:"received"`
-	}{
-		Message: struct {
-			Machine string `json:"machine"`
-			Sensor  string `json:"sensor"`
-		}{
-			Machine: "machine",
-			Sensor:  "sensor",
+	Body: Body{
+		From:      "from",
+		Timestamp: "timestamp",
+		Model: Model{
+			URL: "url",
+			Tag: "tag",
 		},
-		Received: "",
+		Type: "text",
+		Calculated: struct {
+			Message struct {
+				Machine string `json:"machine"`
+				Sensor  string `json:"sensor"`
+			} `json:"message"`
+			Received string `json:"received"`
+		}{
+			Message: struct {
+				Machine string `json:"machine"`
+				Sensor  string `json:"sensor"`
+			}{
+				Machine: "machine",
+				Sensor:  "sensor",
+			},
+			Received: "",
+		},
+		Results: nil,
 	},
-	Results:   nil,
 	Signature: "",
 }
 
@@ -139,7 +142,7 @@ func TestAnalysisHandler_Insert(t *testing.T) {
 				WillReturnRows(v.cmsIdSQL)
 
 			mock.ExpectExec("INSERT INTO analyse_result (contract_machine_sensor, time, result) VALUES ($1, $2, $3)").
-				WithArgs(v.cmsID, v.analysis.Timestamp, string(data)).
+				WithArgs(v.cmsID, v.analysis.Body.Timestamp, string(data)).
 				WillReturnResult(v.result)
 
 			aH := analysisHandler{db: db}

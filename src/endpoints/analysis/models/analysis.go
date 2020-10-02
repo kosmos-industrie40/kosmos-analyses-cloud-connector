@@ -53,7 +53,7 @@ func (a analysisHandler) Insert(contractID string, machineID string, sensorID st
 		return err
 	}
 
-	_, err = a.db.Exec("INSERT INTO analyse_result (contract_machine_sensor, time, result) VALUES ($1, $2, $3)", cmsId, analysis.Timestamp, string(data))
+	_, err = a.db.Exec("INSERT INTO analyse_result (contract_machine_sensor, time, result) VALUES ($1, $2, $3)", cmsId, analysis.Body.Timestamp, string(data))
 	return err
 }
 
@@ -86,7 +86,7 @@ func (a analysisHandler) Query(contractID string, resultID int64) (Analysis, err
 	return analysis, err
 }
 
-type Analysis struct {
+type Body struct {
 	From       string `json:"from"`
 	Timestamp  string `json:"timestamp"`
 	Model      Model  `json:"model"`
@@ -98,22 +98,26 @@ type Analysis struct {
 		} `json:"message"`
 		Received string `json:"received"`
 	} `json:"calculated"`
-	Results   interface{} `json:"results"`
-	Signature string      `json:"signature"`
+	Results interface{} `json:"results"`
+}
+
+type Analysis struct {
+	Body Body `json:"body"`
+	Signature string `json:"signature"`
 }
 
 func (a Analysis) Validate() bool {
 
-	if _, err := time.Parse(time.RFC3339, a.Timestamp); err != nil {
+	if _, err := time.Parse(time.RFC3339, a.Body.Timestamp); err != nil {
 		return false
 	}
-	result, err := json.Marshal(a.Results)
+	result, err := json.Marshal(a.Body.Results)
 	if err != nil {
 		klog.Errorf("unexpected error in marshaling analysis: %s", err)
 		return false
 	}
 
-	switch a.Type {
+	switch a.Body.Type {
 	case "text":
 		var text TextResult
 		if err := json.Unmarshal(result, &text); err != nil {

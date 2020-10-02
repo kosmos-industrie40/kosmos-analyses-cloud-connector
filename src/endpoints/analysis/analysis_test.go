@@ -48,6 +48,10 @@ func (t testResultHandler) Get(contract string, query map[string][]string) ([]by
 
 type testAuthHelper struct{}
 
+func (h testAuthHelper) TokenValid(r *http.Request) (bool, error) {
+	panic("implement me")
+}
+
 func (testAuthHelper) CreateSession(s string, i []string, t time.Time) error {
 	panic("implement me")
 }
