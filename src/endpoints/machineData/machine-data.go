@@ -25,7 +25,7 @@ func NewMachineDataEndpoint(sendChan chan mqtt.Msg, authHelper auth.Helper, cont
 type machineData struct {
 	sendChan chan mqtt.Msg
 	auth     auth.Helper
-	contr Contract
+	contr    Contract
 }
 
 func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -57,10 +57,12 @@ func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// split in multiple mqtt messages
 		for _, dat := range data {
-			sData.Columns = dat.Columns
-			sData.Data = dat.Data
-			sData.Metadata = dat.Metadata
-			sData.Timestamp = dat.Timestamp
+			for _, col := range dat.Body.Columns {
+				s.Data.Body.Columns = append(s.Data.Body.Columns, col)
+			}
+			sData.Body.Data = dat.Body.Data
+			sData.Body.Metadata = dat.Body.Metadata
+			sData.Body.Timestamp = dat.Body.Timestamp
 			sData.Signature = dat.Signature
 
 			if _, err := time.Parse(time.RFC3339, dat.Timestamp); err != nil {
