@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/coreos/go-oidc"
@@ -29,7 +30,7 @@ type oidcAuth struct {
 	generator     TokenGenerate
 }
 
-func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAddress string, helper Helper) (Auth, error) {
+func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAddress, contractCreateRole string, helper Helper) (Auth, error) {
 
 	ctx := context.Background()
 	issuer := fmt.Sprintf("%s/auth/realms/%s", userMgmt, userRealm)
@@ -148,11 +149,12 @@ func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
 
 		// the access token, can be used as authorisation token
 		// in this application we didn't use it, because it should
-		// be easy possible to add other authentication mechnismen
+		// be easy possible to add other authentication mechanism
 		//oauth2Token.AccessToken = "*REDACTED*"
 
 		var claims struct {
 			Groups []string `json:"groups"`
+			Roles  []string `json:"roles"`
 		}
 
 		if err := idToken.Claims(&claims); err != nil {
@@ -160,7 +162,8 @@ func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		klog.Infof("groups: %v", claims.Groups)
+		klog.Infof("groups: %v", strings.Join(claims.Groups, ", "))
+		klog.Infof("groups: %v", strings.Join(claims.Roles, ", "))
 
 		token := struct {
 			Token string    `json:"token"`
@@ -170,7 +173,7 @@ func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
 			oauth2Token.Expiry,
 		}
 
-		if err := o.helper.CreateSession(token.Token, claims.Groups, idToken.Expiry); err != nil {
+		if err := o.helper.CreateSession(token.Token, claims.Groups, claims.Roles, idToken.Expiry); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			klog.Errorf("cannot create session: %s", err)
 			return
