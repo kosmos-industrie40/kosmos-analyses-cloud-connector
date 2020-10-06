@@ -284,17 +284,18 @@ func TestHelperOidc_TokenValid(t *testing.T) {
 	for _, v := range testTable {
 		t.Run(v.description, func(t *testing.T) {
 			req, err := http.NewRequest(http.MethodGet, "something", nil)
+			req.Header.Set("token", v.token)
 			if err != nil {
 				t.Fatalf("cannot create http request")
 			}
 
-			db, mock, err := dbMock.New()
+			db, mock, err := dbMock.New(dbMock.QueryMatcherOption(dbMock.QueryMatcherEqual))
 			if err != nil {
 				t.Fatalf("cannot create mocked databse: %s", err)
 			}
 
 			if v.token != "" {
-				mock.ExpectQuery("SELECT * FROM token").
+				mock.ExpectQuery("SELECT * FROM token WHERE token = $1 AND valid >= NOW()").
 					WithArgs(v.token).
 					WillReturnRows(v.rows)
 			}
