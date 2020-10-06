@@ -19,7 +19,7 @@ type Helper interface {
 
 	// CreateSession will create a session on a specific token. This token will be used
 	// to identify if the user, has the required permission or not
-	CreateSession(string, []string, time.Time) error
+	CreateSession(string, []string, []string, time.Time) error
 
 	// DeleteSession will delete a user session, which is identified by a the session token
 	DeleteSession(string) error
@@ -32,7 +32,17 @@ type Helper interface {
 }
 
 type helperOidc struct {
-	db *sql.DB
+	db            *sql.DB
+	contractWrite string
+}
+
+func (a helperOidc) testContractWrite(tokens []string) bool {
+	for _, token := range tokens {
+		if token == a.contractWrite {
+			return true
+		}
+	}
+	return false
 }
 
 func (a helperOidc) TokenValid(r *http.Request) (bool, error) {
@@ -47,7 +57,7 @@ func (a helperOidc) TokenValid(r *http.Request) (bool, error) {
 		return false, err
 	}
 
-	defer func(){
+	defer func() {
 		if err := query.Close(); err != nil {
 			klog.Errorf("cannot close query object: %s", err)
 		}
@@ -83,8 +93,12 @@ func (a helperOidc) CleanUp() {
 	}
 }
 
-func (a helperOidc) CreateSession(token string, organisations []string, valid time.Time) error {
-	klog.Infof("organisations: %s", fmt.Sprintf("'%s'", strings.Join(organisations, "','")))
+func (a helperOidc) CreateSession(token string, organisations, contractCreation []string, valid time.Time) error {
+	klog.V(2).Infof("organisations: %s", fmt.Sprintf("'%s'", strings.Join(organisations, "','")))
+
+	canCreateContract := a.testContractWrite(contractCreation)
+	klog.V(2).Infof("the user of the added token has contract write rights: %t", canCreateContract)
+
 	query, err := a.db.Query(fmt.Sprintf("SELECT id FROM organisations WHERE name in (%s)", fmt.Sprintf("'%s'", strings.Join(organisations, "','"))))
 	if err != nil {
 		return err
@@ -111,7 +125,7 @@ func (a helperOidc) CreateSession(token string, organisations []string, valid ti
 		return fmt.Errorf("no matching organisations found")
 	}
 
-	if _, err := a.db.Exec("INSERT INTO token (token, valid) VALUES ($1, $2)", token, valid); err != nil {
+	if _, err := a.db.Exec("INSERT INTO token (token, valid, write_contract) VALUES ($1, $2, $3)", token, valid, canCreateContract); err != nil {
 		return err
 	}
 
@@ -188,6 +202,6 @@ func (a helperOidc) DeleteSession(token string) error {
 }
 
 // NewAuthHelper creates a new authentication auth helper
-func NewAuthHelper(db *sql.DB) Helper {
-	return helperOidc{db: db}
+func NewAuthHelper(db *sql.DB, contractWrite string) Helper {
+	return helperOidc{db: db, contractWrite: contractWrite}
 }
