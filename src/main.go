@@ -15,6 +15,8 @@ import (
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/analysis"
 	analysisModel "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/analysis/models"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/auth"
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/contract"
+	contractModel "gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/contract/models"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/health"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/machineData"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints/ready"
@@ -122,11 +124,11 @@ func main() {
 	//modelLogic.Model(db)
 	//cont.Contract(db)
 
-	authHelper := auth.NewAuthHelper(db)
+	authHelper := auth.NewAuthHelper(db, "contract_create")
 
 	go authHelper.CleanUp()
 
-	authHandler, err := auth.NewOidcAuth(conf.UserMgmt.UserMgmt, conf.UserMgmt.UserRealm, conf.UserMgmt.BasePath, pas.UserMgmt.ClientSecret, pas.UserMgmt.ClientId, conf.UserMgmt.ServerAddress, authHelper)
+	authHandler, err := auth.NewOidcAuth(conf.UserMgmt.UserMgmt, conf.UserMgmt.UserRealm, conf.UserMgmt.BasePath, pas.UserMgmt.ClientSecret, pas.UserMgmt.ClientId, conf.UserMgmt.ServerAddress,  authHelper)
 	if err != nil {
 		klog.Errorf("cannot create new oidc handler: %s", err)
 		os.Exit(1)
@@ -142,6 +144,11 @@ func main() {
 	analysisLogic := analysis.NewAnalyseLogic(analysisResultListHandler, analysisHandler)
 	analysisEndpoint := analysis.NewAnalysisEndpoint(analysisLogic, authHelper)
 
+	contractHandleWorker := contractModel.NewContractHandler(db, "cloud")
+	contractResultList := contractModel.NewResultList(db)
+	contractLogic := contract.NewContractLogic(contractResultList, contractHandleWorker, "cloud")
+	contractHandler := contract.NewContractEndpoint(contractLogic, authHelper)
+
 	http.Handle("/auth", authHandler)
 	http.Handle("/auth/", authHandler)
 	http.Handle("/health", new(health.Health))
@@ -149,10 +156,10 @@ func main() {
 	http.Handle("/machine-data", machineHandler)
 	http.Handle("/ready", new(ready.Ready))
 	http.Handle("/analysis/", analysisEndpoint)
+	http.Handle("/contract/", contractHandler)
 
 	//http.Handle("/analyses/", analysesResult)
 	//http.Handle("/model/", model)
-	//http.Handle("/contract/", contract)
 
 	klog.Infof("start webserver")
 	listen := fmt.Sprintf("%s:%d", conf.Webserver.Address, conf.Webserver.Port)
