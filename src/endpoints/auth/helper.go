@@ -29,12 +29,17 @@ type Helper interface {
 
 	// TokenValid checks if a token is valid and can be used or not
 	TokenValid(r *http.Request) (bool, error)
+
+	// ContractWriteAccess checks if the user has write permissions to create and delete contracts
+	ContractWriteAccess(r *http.Request) (bool, int, error)
 }
 
 type helperOidc struct {
 	db            *sql.DB
 	contractWrite string
 }
+
+var nameTokenInHeader string = "token"
 
 func (a helperOidc) testContractWrite(tokens []string) bool {
 	for _, token := range tokens {
@@ -47,7 +52,7 @@ func (a helperOidc) testContractWrite(tokens []string) bool {
 
 func (a helperOidc) TokenValid(r *http.Request) (bool, error) {
 
-	token := r.Header.Get("token")
+	token := r.Header.Get(nameTokenInHeader)
 	if token == "" {
 		return false, nil
 	}
@@ -140,7 +145,7 @@ func (a helperOidc) CreateSession(token string, organisations, contractCreation 
 }
 
 func (a helperOidc) IsAuthenticated(request *http.Request, contract string, write bool) (bool, int, error) {
-	token := request.Header.Get("token")
+	token := request.Header.Get(nameTokenInHeader)
 	if token == "" {
 		klog.Infof("no token can be found")
 		return false, http.StatusUnauthorized, nil
@@ -199,6 +204,32 @@ func (a helperOidc) IsAuthenticated(request *http.Request, contract string, writ
 func (a helperOidc) DeleteSession(token string) error {
 	_, err := a.db.Exec("DELETE FROM token WHERE token = $1", token)
 	return err
+}
+
+func (a helperOidc) ContractWriteAccess(r *http.Request) (bool, int, error) {
+	token := r.Header.Get(nameTokenInHeader)
+
+	query, err := a.db.Query("SELECT write_contract FROM token WHERE token = $1", token)
+	if err != nil {
+		return false, 500, err
+	}
+
+	defer func() {
+		if err := query.Close(); err != nil {
+			klog.Errorf("cannot close query object: %s", err)
+		}
+	}()
+
+	if !query.Next() {
+		return false, http.StatusUnauthorized, nil
+	}
+
+	var writeAccess bool
+	if err := query.Scan(&writeAccess); err != nil {
+		return false, http.StatusInternalServerError, err
+	}
+
+	return writeAccess , 0, nil
 }
 
 // NewAuthHelper creates a new authentication auth helper

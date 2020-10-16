@@ -80,7 +80,7 @@ func TestHelperOidc_IsAuthenticated(t *testing.T) {
 
 			defer db.Close()
 
-			helper := NewAuthHelper(db)
+			helper := NewAuthHelper(db, "")
 			isAuth, statusCode, err := helper.IsAuthenticated(req, v.contract, v.writeAccess)
 
 			if statusCode != v.statusCode {
@@ -194,8 +194,8 @@ func TestHelperOidc_CreateSession(t *testing.T) {
 					WillReturnResult(dbMock.NewResult(0, 1))
 			}
 
-			helper := NewAuthHelper(db)
-			err = helper.CreateSession(v.token, namesOrgs, v.valid)
+			helper := NewAuthHelper(db, "")
+			err = helper.CreateSession(v.token, namesOrgs, []string{}, v.valid)
 
 			if !reflect.DeepEqual(err, v.err) {
 				t.Errorf("expected error != returned error\n\t%s != %s", v.err, err)
@@ -236,7 +236,7 @@ func TestHelperOidc_DeleteSession(t *testing.T) {
 				WithArgs(v.token).
 				WillReturnResult(v.result)
 
-			helper := NewAuthHelper(db)
+			helper := NewAuthHelper(db, "")
 			err = helper.DeleteSession(v.token)
 
 			if err := mock.ExpectationsWereMet(); err != nil {
@@ -284,10 +284,11 @@ func TestHelperOidc_TokenValid(t *testing.T) {
 	for _, v := range testTable {
 		t.Run(v.description, func(t *testing.T) {
 			req, err := http.NewRequest(http.MethodGet, "something", nil)
-			req.Header.Set("token", v.token)
 			if err != nil {
 				t.Fatalf("cannot create http request")
 			}
+
+			req.Header.Set("token", v.token)
 
 			db, mock, err := dbMock.New(dbMock.QueryMatcherOption(dbMock.QueryMatcherEqual))
 			if err != nil {
