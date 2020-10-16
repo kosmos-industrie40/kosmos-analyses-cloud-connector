@@ -1,5 +1,5 @@
 // build +unit
-package endpoints
+package contract
 
 import (
 	"encoding/json"
@@ -11,6 +11,7 @@ import (
 
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/database"
 
+	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/endpoints"
 	"gitlab.inovex.de/proj-kosmos/kosmos-analyses-cloud-connector/src/models_database"
 )
 
@@ -63,7 +64,7 @@ func (c testContracts) DeleteContract(id string) error {
 	}
 }
 
-var contract Contract = Contract{Auth: AuthTest{}, Contract: testContracts{}}
+var contract Contract = Contract{Auth: endpoints.AuthTest{}, Contract: testContracts{}}
 
 func TestContractPost(t *testing.T) {
 	errorCase := models_database.Contract{ContractId: "error"}
