@@ -58,14 +58,27 @@ func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// split in multiple mqtt messages
 		for _, dat := range data {
 			for _, col := range dat.Body.Columns {
-				s.Data.Body.Columns = append(s.Data.Body.Columns, col)
+				column := mqttModels.Column{
+					Name: col.Name,
+					Type: col.Type,
+					Meta: struct {
+						Future      interface{} `json:"future,omitempty"`
+						Unit        string      `json:"unit"`
+						Description string      `json:"description"`
+					}{
+						Future:      col.Meta.Future,
+						Unit:        col.Meta.Unit,
+						Description: col.Meta.Description,
+					},
+				}
+				sData.Body.Columns = append(sData.Body.Columns, column)
 			}
 			sData.Body.Data = dat.Body.Data
 			sData.Body.Metadata = dat.Body.Metadata
 			sData.Body.Timestamp = dat.Body.Timestamp
 			sData.Signature = dat.Signature
 
-			if _, err := time.Parse(time.RFC3339, dat.Timestamp); err != nil {
+			if _, err := time.Parse(time.RFC3339, dat.Body.Timestamp); err != nil {
 				klog.Errorf("cannot validate timestamp: %s", err)
 				w.WriteHeader(400)
 				return
@@ -74,7 +87,7 @@ func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			authenticated := false
 			var statusCode int
 			var err error
-			contracts, err := m.contr.GetContracts(dat.Machine, dat.Sensor)
+			contracts, err := m.contr.GetContracts(dat.Body.MachineID, dat.Body.Sensor)
 			for _, cont := range contracts {
 				authenticated, statusCode, err = m.auth.IsAuthenticated(r, cont, true)
 				if err != nil {
@@ -93,7 +106,7 @@ func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			msg.Topic = fmt.Sprintf("kosmos/machine-data/%s/sensor/%s/update", dat.Machine, dat.Sensor)
+			msg.Topic = fmt.Sprintf("kosmos/machine-data/%s/sensor/%s/update", dat.Body.MachineID, dat.Body.Sensor)
 			msg.Msg, err = json.Marshal(sData)
 			if err != nil {
 				klog.Errorf("could not translate to used data: %s\n", err)
