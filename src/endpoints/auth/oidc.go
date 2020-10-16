@@ -30,7 +30,7 @@ type oidcAuth struct {
 	generator     TokenGenerate
 }
 
-func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAddress, contractCreateRole string, helper Helper) (Auth, error) {
+func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAddress string, helper Helper) (Auth, error) {
 
 	ctx := context.Background()
 	issuer := fmt.Sprintf("%s/auth/realms/%s", userMgmt, userRealm)
