@@ -52,7 +52,7 @@ func (h testAuthHelper) TokenValid(r *http.Request) (bool, error) {
 	panic("implement me")
 }
 
-func (testAuthHelper) CreateSession(s string, i []string, t time.Time) error {
+func (testAuthHelper) CreateSession(s string, i []string, x []string, t time.Time) error {
 	panic("implement me")
 }
 
@@ -68,9 +68,15 @@ func (testAuthHelper) IsAuthenticated(r *http.Request, contract string, write bo
 	return true, 0, nil
 }
 
-var aHandler models.AnalysisHandler = testAnalysisHandler{}
-var tHandler models.ResultListHandler = testResultHandler{}
-var aHelper auth.Helper = testAuthHelper{}
+func (testAuthHelper) ContractWriteAccess(r *http.Request) (bool, int, error) {
+	return true, 0, nil
+}
+
+var (
+	aHandler models.AnalysisHandler   = testAnalysisHandler{}
+	tHandler models.ResultListHandler = testResultHandler{}
+	aHelper  auth.Helper              = testAuthHelper{}
+)
 
 var analyses Analysis = analysis{
 	analysis: analyseLogic{
