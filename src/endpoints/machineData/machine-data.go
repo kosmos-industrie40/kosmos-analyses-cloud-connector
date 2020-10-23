@@ -88,6 +88,11 @@ func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			var statusCode int
 			var err error
 			contracts, err := m.contr.GetContracts(dat.Body.MachineID, dat.Body.Sensor)
+			if err != nil {
+				klog.Errorf("cannot get contract: %s", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			for _, cont := range contracts {
 				authenticated, statusCode, err = m.auth.IsAuthenticated(r, cont, true)
 				if err != nil {

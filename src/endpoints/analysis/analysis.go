@@ -78,7 +78,6 @@ func (a analysis) handlePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(201)
-	return
 }
 
 func (a analysis) handleGet(w http.ResponseWriter, r *http.Request) {

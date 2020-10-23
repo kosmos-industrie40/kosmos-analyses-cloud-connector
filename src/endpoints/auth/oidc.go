@@ -96,7 +96,6 @@ func (o oidcAuth) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNotFound)
-	return
 }
 
 func (o oidcAuth) handleBase(w http.ResponseWriter, r *http.Request) {
