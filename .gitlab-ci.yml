@@ -24,6 +24,8 @@ lint:
 
 unit_test:
         stage: test
+        variables:
+                GIT_SUBMODULE_STRATEGY: recursive
         tags:
                 - shared
         before_script:
