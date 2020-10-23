@@ -27,9 +27,10 @@ unit_test:
         tags:
                 - shared
         before_script:
-                - go get -u github.com/jstemmer/go-junit-report
+          - go get -u github.com/jstemmer/go-junit-report
         script:
-                - go test ./... -coverprofile unit-test.out -race --tags unit | go-junit-report > report.xml
+          - go test -v ./...
+          - go test -coverprofile unit-test.out -race --tags unit ./... | go-junit-report > report.xml
         artifacts:
                 reports:
                         junit: report.xml
