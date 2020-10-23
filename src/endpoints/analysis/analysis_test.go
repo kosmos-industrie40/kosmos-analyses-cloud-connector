@@ -254,13 +254,13 @@ func TestAnalysesGet(t *testing.T) {
 			"success analysis with empty response",
 			200,
 			"/analysis/abc/430",
-			"{\"from\":\"\",\"timestamp\":\"\",\"model\":{\"url\":\"\",\"tag\":\"\"},\"type\":\"\",\"calculated\":{\"message\":{\"machine\":\"\",\"sensor\":\"\"},\"received\":\"\"},\"results\":null,\"signature\":\"\"}",
+			"{\"body\":{\"from\":\"\",\"timestamp\":\"\",\"model\":{\"url\":\"\",\"tag\":\"\"},\"type\":\"\",\"calculated\":{\"message\":{\"machine\":\"\",\"sensor\":\"\"},\"received\":\"\"},\"results\":null},\"signature\":\"\"}",
 		},
 		{
 			"",
 			200,
 			"/analysis/one/432",
-			"{\"from\":\"\",\"timestamp\":\"\",\"model\":{\"url\":\"\",\"tag\":\"\"},\"type\":\"\",\"calculated\":{\"message\":{\"machine\":\"\",\"sensor\":\"\"},\"received\":\"\"},\"results\":null,\"signature\":\"\"}",
+			"{\"body\":{\"from\":\"\",\"timestamp\":\"\",\"model\":{\"url\":\"\",\"tag\":\"\"},\"type\":\"\",\"calculated\":{\"message\":{\"machine\":\"\",\"sensor\":\"\"},\"received\":\"\"},\"results\":null},\"signature\":\"\"}",
 		},
 	}
 
@@ -277,11 +277,11 @@ func TestAnalysesGet(t *testing.T) {
 			analyses.ServeHTTP(rr, req)
 
 			if status := rr.Code; status != test.statusCode {
-				t.Errorf("handler returnes wrong status code: got %d want %d", status, test.statusCode)
+				t.Errorf("handler returnes wrong status code: got\n\t %d \nwant\n\t %d", status, test.statusCode)
 			}
 
 			if rr.Body.String() != test.data {
-				t.Errorf("%v\thandler returnes wrong data in body: got %s want %s", test, rr.Body.String(), test.data)
+				t.Errorf("%v\thandler returnes wrong data in body: got\n\t %s \nwant \n\t%s", test, rr.Body.String(), test.data)
 			}
 
 		})

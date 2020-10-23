@@ -104,7 +104,7 @@ func (a helperOidc) CreateSession(token string, organisations, contractCreation 
 	canCreateContract := a.testContractWrite(contractCreation)
 	klog.V(2).Infof("the user of the added token has contract write rights: %t", canCreateContract)
 
-	query, err := a.db.Query(fmt.Sprintf("SELECT id FROM organisations WHERE name in (%s)", fmt.Sprintf("'%s'", strings.Join(organisations, "','"))))
+	query, err := a.db.Query(fmt.Sprintf("SELECT id FROM organisations WHERE name in ($1)"), fmt.Sprintf("'%s'", strings.Join(organisations, "','")))
 	if err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func (a helperOidc) ContractWriteAccess(r *http.Request) (bool, int, error) {
 		return false, http.StatusInternalServerError, err
 	}
 
-	return writeAccess , 0, nil
+	return writeAccess, 0, nil
 }
 
 // NewAuthHelper creates a new authentication auth helper
