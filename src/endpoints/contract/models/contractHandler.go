@@ -92,7 +92,7 @@ func (c contractHandler) InsertContract(contract Contract) error {
 
 			defer func() {
 				if err := systemIdQuery.Close(); err != nil {
-					klog.Errorf("cannot close query object: %s")
+					klog.Errorf("cannot close query object: %s", err)
 				}
 			}()
 
