@@ -53,7 +53,7 @@ container_build:
           - shared
         cache: {}
         before_script:
-                - echo $CI_DOCKER_CONFIG > /kaniko/.docker/config.json
+                - echo $HARBOR_PROD_PUSH_ANALYSE_PLATFORM_KOSMOS > /kaniko/.docker/config.json
         script: |
                 if [ -z $CI_REGISTRY ] || [ -z $CI_REGISTRY_IMAGE ]; then
                     echo "missing parameters please add CI_REGISTRY and/or CI_REGISTRY_IMAGE"
