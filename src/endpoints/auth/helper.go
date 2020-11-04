@@ -99,12 +99,13 @@ func (a helperOidc) CleanUp() {
 }
 
 func (a helperOidc) CreateSession(token string, organisations, contractCreation []string, valid time.Time) error {
-	klog.V(2).Infof("organisations: %s", fmt.Sprintf("'%s'", strings.Join(organisations, "','")))
+	organisationString := fmt.Sprintf("'%s'", strings.Join(organisations, "','"))
+	klog.V(2).Infof("organisationString is equal to: %s", organisationString)
 
 	canCreateContract := a.testContractWrite(contractCreation)
 	klog.V(2).Infof("the user of the added token has contract write rights: %t", canCreateContract)
 
-	query, err := a.db.Query("SELECT id FROM organisations WHERE name in ($1)", fmt.Sprintf("'%s'", strings.Join(organisations, "','")))
+	query, err := a.db.Query(fmt.Sprintf("SELECT id FROM organisations WHERE name in (%s)", organisationString))
 	if err != nil {
 		return err
 	}
@@ -126,8 +127,10 @@ func (a helperOidc) CreateSession(token string, organisations, contractCreation 
 
 	klog.Infof("orgs: %v", orgs)
 
-	if len(orgs) == 0 {
-		return fmt.Errorf("no matching organisations found")
+	if !canCreateContract {
+		if len(orgs) == 0 {
+			return fmt.Errorf("no matching organisations found")
+		}
 	}
 
 	if _, err := a.db.Exec("INSERT INTO token (token, valid, write_contract) VALUES ($1, $2, $3)", token, valid, canCreateContract); err != nil {
