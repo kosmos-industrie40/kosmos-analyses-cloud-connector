@@ -128,7 +128,7 @@ func main() {
 
 	go authHelper.CleanUp()
 
-	authHandler, err := auth.NewOidcAuth(conf.UserMgmt.UserMgmt, conf.UserMgmt.UserRealm, conf.UserMgmt.BasePath, pas.UserMgmt.ClientSecret, pas.UserMgmt.ClientId, conf.UserMgmt.ServerAddress, authHelper)
+	authHandler, err := auth.NewOidcAuth(conf.UserMgmt.UserMgmt, "auth", pas.UserMgmt.ClientSecret, pas.UserMgmt.ClientId, conf.UserMgmt.ServerAddress, authHelper)
 	if err != nil {
 		klog.Errorf("cannot create new oidc handler: %s", err)
 		os.Exit(1)

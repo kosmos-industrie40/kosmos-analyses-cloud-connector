@@ -30,10 +30,9 @@ type oidcAuth struct {
 	generator     TokenGenerate
 }
 
-func NewOidcAuth(userMgmt, userRealm, basePath, clientSecret, clientId, serverAddress string, helper Helper) (Auth, error) {
-
+func NewOidcAuth(userMgmt, basePath, clientSecret, clientId, serverAddress string, helper Helper) (Auth, error) {
 	ctx := context.Background()
-	issuer := fmt.Sprintf("%s/auth/realms/%s", userMgmt, userRealm)
+	issuer := userMgmt
 	klog.Infof("issuer url: %s", issuer)
 
 	provider, err := oidc.NewProvider(ctx, issuer)
@@ -172,6 +171,7 @@ func (o oidcAuth) handleCallback(w http.ResponseWriter, r *http.Request) {
 			oauth2Token.Expiry,
 		}
 
+		klog.V(2).Infof("claim goups is: %s", claims.Groups)
 		if err := o.helper.CreateSession(token.Token, claims.Groups, claims.Roles, idToken.Expiry); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			klog.Errorf("cannot create session: %s", err)

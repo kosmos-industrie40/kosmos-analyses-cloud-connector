@@ -17,8 +17,6 @@ type Configurations struct {
 	} `yaml:"mqtt"`
 	UserMgmt struct {
 		UserMgmt      string `yaml:"userMgmt"`
-		UserRealm     string `yaml:"userRealm"`
-		BasePath      string `yaml:"basePath"`
 		ServerAddress string `yaml:"serverAddress"`
 	} `yaml:"userMgmt"`
 }
