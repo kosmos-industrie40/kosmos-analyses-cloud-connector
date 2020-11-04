@@ -9,3 +9,8 @@ database:
 mqtt:
   address: 127.0.0.1
   port: 1883
+userMgmt:
+  UserMgmt: ""
+  UserRealm: ""
+  BasePath: ""
+  ServerAddress: ""
