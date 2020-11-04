@@ -35,7 +35,7 @@ with a predefined token. This will be inserted to the database and you can use t
 To insert these data point you can use this command:
 ```bash
 psql -h <host> -d <database> -U <database user> -c \
-"INSERT INTO token (name, token) VALUES ('test-user', 'ca397616-e351-47c3-ae7b-0785e6278357');"
+"INSERT INTO token (token, valid, write_contract) VALUES ('ca397616-e351-47c3-ae7b-0785e6278357', '<actual timestamp + 5h)', 't');"
 ```
 
 In this test we are assuming that the program is running on the `localhost` and using the port `8080`.
@@ -46,10 +46,10 @@ is in the test directory.
 ## Authentication
 This section contains the test case to test against the authentication endpoint. 
 
+
 ### Log in
-```bash
-curl -i -X POST localhost:8080/auth --data '{"user":"test", "password":"abc"}'
-```
+To test this endpoint, you have to set up, or use a oidc auth server. This can be a self hosted instanc of keycloak, google auth or github. The best way to test this, using a browser and
+call the endpint with the 'auth' path.
 
 ### Test Authenticated
 ```bash
