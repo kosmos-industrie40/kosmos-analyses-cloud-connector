@@ -18,7 +18,7 @@ General informations about openapi can be found on [this swagger page.](https://
 To view in the api definition please open the [ConnectorEdgeCloud.yaml file.](./ConnectorEdgeCloud.yaml)
 
 ## Dependencies
-Golang 1.14 is used to write this endpoint. So golang is 
+Golang 1.15 is used to write this endpoint. So golang is 
 one of the requirements. We are using go modules to organize the sufficient dependencies. Those
 are organized in the `go.mod` file.
 
@@ -68,6 +68,8 @@ found in the `examplePassword.yaml` file.
 | mqtt.password | is the password which is used by the mqtt.user for the mqtt connection |
 | database.user | is the user for the postgresql database connection |
 | database.password | is the password for the postgresql database connection |
+| userMgmt.clientID | is the client id, which is used by the user management |
+| userMgmt.clientSecret | is the client secret, which is used by the user management |
 
 ### Configuration
 The configuration file will be used to configure the system without including credentials. An example configuration
@@ -82,3 +84,5 @@ can be found in the `exampleConfiguration.yaml` file.
 | database.database | is the name of the PostgreSQL database |
 | mqtt.address | is the IP address (or URL) of the mqtt broker |
 | mqtt.port | is the port of the mqtt broker|
+| userMgmt.userMgmt | is the address to the user managment system (on keycloak inclusive realm) |
+| userMgmt.serverAddress | is the local server address |
