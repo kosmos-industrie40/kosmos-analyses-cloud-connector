@@ -141,7 +141,7 @@ func TestAnalysisHandler_Insert(t *testing.T) {
 				WithArgs(v.contractID, v.machineID, v.sensorID).
 				WillReturnRows(v.cmsIdSQL)
 
-			mock.ExpectExec("INSERT INTO analyse_result (contract_machine_sensor, time, result) VALUES ($1, $2, $3)").
+			mock.ExpectExec("INSERT INTO analysis_result (contract_machine_sensor, time, result) VALUES ($1, $2, $3)").
 				WithArgs(v.cmsID, v.analysis.Body.Timestamp, string(data)).
 				WillReturnResult(v.result)
 
@@ -198,7 +198,7 @@ func TestAnalysisHandler_Query(t *testing.T) {
 
 			defer db.Close()
 
-			mock.ExpectQuery("SELECT result FROM analyse_result AS ar JOIN contract_machine_sensors cms on ar.contract_machine_sensor = cms.id").
+			mock.ExpectQuery("SELECT result FROM analysis_result AS ar JOIN contract_machine_sensors cms on ar.contract_machine_sensor = cms.id").
 				WithArgs(v.contractId, v.resultId).
 				WillReturnRows(v.rows)
 

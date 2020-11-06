@@ -180,8 +180,7 @@ func TestHelperOidc_CreateSession(t *testing.T) {
 				namesOrgs = append(namesOrgs, org.name)
 			}
 
-			mock.ExpectQuery("SELECT id FROM organisations WHERE name in ($1)").
-				WithArgs(fmt.Sprintf("'%s'", strings.Join(namesOrgs, "','"))).
+			mock.ExpectQuery(fmt.Sprintf("SELECT id FROM organisations WHERE name in ('%s')", strings.Join(namesOrgs, "','"))).
 				WillReturnRows(v.orgRows)
 
 			mock.ExpectExec("INSERT INTO token (token, valid, write_contract) VALUES ($1, $2, $3)").

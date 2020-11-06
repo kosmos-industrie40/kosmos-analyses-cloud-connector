@@ -179,7 +179,7 @@ func TestResultListHandler_Get(t *testing.T) {
 					WillReturnRows(v.sensorRow)
 			}
 
-			mock.ExpectQuery("SELECT ar.id, ar.time, ms.machine FROM analyse_result AS ar JOIN contract_machine_sensors cms on cms.id = ar.contract_machine_sensor JOIN machine_sensors ms on cms.machine_sensor = ms.id").
+			mock.ExpectQuery("SELECT ar.id, ar.time, ms.machine FROM analysis_result AS ar JOIN contract_machine_sensors cms on cms.id = ar.contract_machine_sensor JOIN machine_sensors ms on cms.machine_sensor = ms.id").
 				WithArgs(v.args...).
 				WillReturnRows(v.rows)
 
