@@ -19,7 +19,7 @@ type psqlContract struct {
 }
 
 func (p psqlContract) GetContracts(machine, sensor string) ([]string, error) {
-	query, err := p.db.Query("SELECT contract FROM contract_machine_sensors AS cms JOIN machine_sensors ms on cms.machine_sensor = ms.id JOIN sensors s on ms.sensor = s.id WHERE machine = $1 AND sensor = $2", machine, sensor)
+	query, err := p.db.Query("SELECT contract FROM contract_machine_sensors AS cms JOIN machine_sensors ms on cms.machine_sensor = ms.id JOIN sensors s on ms.sensor = s.id WHERE machine = $1 AND transmitted_id = $2", machine, sensor)
 	if err != nil {
 		return nil, err
 	}

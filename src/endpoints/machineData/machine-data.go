@@ -90,14 +90,14 @@ func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			contracts, err := m.contr.GetContracts(dat.Body.MachineID, dat.Body.Sensor)
 			if err != nil {
 				klog.Errorf("cannot get contract: %s", err)
-				w.WriteHeader(http.StatusInternalServerError)
+				w.WriteHeader(statusCode)
 				return
 			}
 			for _, cont := range contracts {
 				authenticated, statusCode, err = m.auth.IsAuthenticated(r, cont, true)
 				if err != nil {
 					klog.Errorf("cannot check authentication: %s", err)
-					w.WriteHeader(http.StatusInternalServerError)
+					w.WriteHeader(statusCode)
 					return
 				}
 
@@ -107,7 +107,8 @@ func (m machineData) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if !authenticated {
-				w.WriteHeader(statusCode)
+				klog.Infof("cannot authenticate: %t", authenticated)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
