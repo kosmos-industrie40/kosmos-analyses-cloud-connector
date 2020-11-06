@@ -53,12 +53,12 @@ func (a analysisHandler) Insert(contractID string, machineID string, sensorID st
 		return err
 	}
 
-	_, err = a.db.Exec("INSERT INTO analyse_result (contract_machine_sensor, time, result) VALUES ($1, $2, $3)", cmsId, analysis.Body.Timestamp, string(data))
+	_, err = a.db.Exec("INSERT INTO analysis_result (contract_machine_sensor, time, result) VALUES ($1, $2, $3)", cmsId, analysis.Body.Timestamp, string(data))
 	return err
 }
 
 func (a analysisHandler) Query(contractID string, resultID int64) (Analysis, error) {
-	query, err := a.db.Query("SELECT result FROM analyse_result AS ar JOIN contract_machine_sensors cms on ar.contract_machine_sensor = cms.id WHERE ar.id = $1 AND cms.contract = $2",
+	query, err := a.db.Query("SELECT result FROM analysis_result AS ar JOIN contract_machine_sensors cms on ar.contract_machine_sensor = cms.id WHERE ar.id = $1 AND cms.contract = $2",
 		contractID,
 		resultID,
 	)

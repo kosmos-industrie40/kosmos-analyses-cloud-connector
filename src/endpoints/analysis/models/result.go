@@ -32,6 +32,8 @@ func (r resultListHandler) Get(contractID string, queryParams map[string][]strin
 	var queryWhere []string
 	var argWhere []interface{}
 
+	klog.V(2).Infof("contractID %s", contractID)
+
 	queryWhere = append(queryWhere, "contract = $1")
 	argWhere = append(argWhere, contractID)
 
@@ -128,8 +130,9 @@ func (r resultListHandler) Get(contractID string, queryParams map[string][]strin
 	}
 
 	where := fmt.Sprintf("WHERE %s", strings.Join(queryWhere, " AND "))
+	klog.V(2).Infof("WHERE clause: %s\nvalues: %v", where, argWhere)
 
-	query, err := r.db.Query(fmt.Sprintf("SELECT ar.id, ar.time, ms.machine FROM analyse_result AS ar JOIN contract_machine_sensors cms on cms.id = ar.contract_machine_sensor JOIN machine_sensors ms on cms.machine_sensor = ms.id %s", where), argWhere...)
+	query, err := r.db.Query(fmt.Sprintf("SELECT ar.id, ar.time, ms.machine FROM analysis_result AS ar JOIN contract_machine_sensors cms on cms.id = ar.contract_machine_sensor JOIN machine_sensors ms on cms.machine_sensor = ms.id %s", where), argWhere...)
 	if err != nil {
 		return nil, fmt.Errorf("return query: %s", err)
 	}
