@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS storage_duration
 
 CREATE TABLE IF NOT EXISTS analysis_result
 (
-    id                      bigint,
+    id                      BIGSERIAL,
     contract_machine_sensor bigint REFERENCES contract_machine_sensors,
     time                    timestamptz,
     result                  json,
