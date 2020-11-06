@@ -335,7 +335,7 @@ func (c contractHandler) getModelId(model Model) (int64, error) {
 		return id, err
 	}
 
-	return 0, fmt.Errorf("could not found model")
+	return 0, fmt.Errorf("could not found model with url %s and tag %s", model.Url, model.Tag)
 }
 
 func (c contractHandler) insertPipeline(cms, system int64, trigger Trigger) (int64, error) {
