@@ -698,32 +698,8 @@ paths:
     post:
       summary: authentication, to use all other endpoints
       responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                required:
-                  - token
-                  - valid
-                properties:
-                  token:
-                    type: string
-                    description: is the authentication token
-                  valid:
-                    type: string
-                    format: date-time
-                    description: is the timestamp how long the token will be valid
-        400:
-          description: failure
-          content:
-            application/json:
-              schema:
-                properties:
-                  issue:
-                    type: string
-                    description: defines what is going wrong
-                    example: Password is wrong
+        302:
+          description: redirect to authentication server
         500:
           description: error
           content:
@@ -758,6 +734,37 @@ paths:
                   error:
                     type: string
                     description: more informations about this error
+  /auth/callback:
+    get:
+      summary: create the token and return this token to the client
+      parameters:
+        - in: path
+          description: code from the oidc auth server
+          name: code
+          schema:
+            type: string
+        - in: path
+          description: state variable of the server to verify the redirect
+          name: state
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                required:
+                  - token
+                  - valid
+                properties:
+                  token:
+                    type: string
+                    description: is the authentication token
+                  valid:
+                    type: string
+                    format: date-time
+                    description: is the timestamp how long the token will be valid
   /contract:
     parameters:
       - in: header
