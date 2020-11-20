@@ -6,8 +6,11 @@ info:
   contact:
     name: Jan Unterbrink
     email: jan.unterbrink@inovex.de
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
 servers:
-  - url: '/v1'
+  - url: 'connector.kosmos.idcp.inovex.io'
 components:
   schemas:
     model:
@@ -22,49 +25,269 @@ components:
         tag:
           type: string
           description: is the initial or actual tag of the docker container
+    container:
+      type: object
+      properties:
+        url:
+          type: string
+          description: is the url of the container (ref. docker container)
+        tag:
+          type: string
+          description: is the tag of the container (ref. docker container)
+        arguments:
+          type: array
+          items:
+            type: string
+          description: defines arguments of this container
+        environment:
+          type: array
+          items:
+            type: string
+          description: defines the environment varibales of this container
+    pipelines:
+      type: array
+      description: defines the analysis pipeline
+      items:
+        type: object
+        properties:
+          ml-trigger:
+            type: object
+            description: defines if an ml tool will be triggered
+            properties:
+              type:
+                type: string
+                enum:
+                  - time
+                  - event
+              definition: {
+                type: object
+              }
+            required:
+              - definition
+              - type
+          pipeline:
+            type: array
+            items:
+              type: object
+              required:
+                - container
+                - persistOutput
+                - from
+                - to
+              properties:
+                container:
+                  $ref: "#/components/schemas/container"
+                persistOutput:
+                  type: boolean
+                  description: defines if the outptut should be persist or not
+                from:
+                  $ref: "#/components/schemas/model"
+                to:
+                  $ref: "#/components/schemas/container"
+          sensors:
+            type: array
+            items: 
+              type: string
+            description: defines the sensor on which the analyse should be done
+        required:
+          - pipeline
+          - sensors
+          - ml-trigger
     contract:
       type: object
       required:
-        - contractId
-        - modelsEdge
-        - modelsCloud
+        - body
       properties:
-        contractId:
-          type: string
-          description: is the contract id
-        modelsEdge:
-          description: defines the initial models, which are deployed on the edge
-          type: array
-          minItems: 0
-          items:
-            $ref: '#/components/schemas/model'
-        modelsCloud:
-          description: defines the initial models, which are deployed in the cloud
-          type: array
-          minItems: 0
-          items:
-            $ref: '#/components/schemas/model'
-        machines:
-          description: defines the machine id which contains to this contract
-          type: array
-          minItems: 0
-          items:
-            type: object
-            properties:
-              machineId:
-                type: string
-                description: id of the machine
-              sensors:
-                type: array
-                description: defines a sensor
-                items:
+        body:
+          type: object
+          properties:
+            contract:
+              type: object
+              description: contains contract meta data
+              required:
+                - valid
+                - creationTime
+                - permissions
+                - id
+                - partners
+              properties:
+                valid:
                   type: object
                   properties:
-                    sensorId:
+                    start:
                       type: string
-                      description: is the id of the sensor
-                    model:
-                      $ref: '#/components/schemas/model'
+                      format: date-time
+                      description: defines the start date of the contract
+                    end:
+                      type: string
+                      format: date-time
+                      description: defines the end date of the contract
+                  required:
+                    - start
+                    - end
+                parentContract:
+                  type: string
+                  description: can be emtpy or the contract id of the parent contract
+                creationTime:
+                  type: string
+                  format: date-time
+                  description: defines when the contract is created
+                partners:
+                  type: array
+                  items:
+                    type: string
+                  description: defines the organisations, which are part of of the contract
+                permissions:
+                  description: defines which organisations (groups in oidc) which perssions on this contract have
+                  type: object
+                  properties:
+                    read:
+                      type: array
+                      items:
+                        type: string
+                      description: defines the read permission
+                    write:
+                      type: array
+                      items:
+                        type: string
+                      description: defines the write persmission
+                id:
+                  type: string
+                  description: is the id of the contract
+                version:
+                  type: string
+                  description: is the version of the contract
+            requiredTechnicalContainers:
+              type: array
+              items:
+                type: object
+                properties:
+                  system:
+                    type: string
+                    description: defines the system on which the containers are required
+                  containers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/container"
+                    description: required technical containers
+            machine:
+              type: string
+              description: is the unique id of the machine
+            kosmosLocalSystems:
+              type: array
+              items:
+                type: string
+              description: defines all KOSMoS-Local system, which uses this contract 
+            sensors:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: name of the sensor
+                  storageDuration:
+                    type: array
+                    description: defines the torage duration of this sensor
+                    items:
+                      type: object
+                      properties:
+                        systemName:
+                          type: string
+                          description: is the name of the system, the value can be either 'analyse' or a system, wich is listed in kosmosLocal
+                        duration:
+                          type: string
+                          format: duration
+                      required:
+                        - systemName
+                        - duration
+                  meta:
+                    type: object
+                    description: placeholder to include meta data of this sensor
+              required:
+                - name
+                - storageDuration
+                - meta
+            checkSignatures:
+              type: boolean
+              description: defines if programms has to check the message signature or not (end to end validation)
+            analysis:
+              type: object
+              properties:
+                enable:
+                  type: boolean
+                  description: defines if analysis is enabled or not
+                systems:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                        description: identify the system. The value can be either cloud or a name which are defined in the property kosmosLocalSystems
+                      enable:
+                        type: boolean
+                        description: defines if this analysis part is enabled or not
+                      pipelines:
+                        $ref: "#/components/schemas/pipelines"
+                        description: defines the pipeline for this specific system
+                      connection:
+                        description: defines the connection to the analysis cloud
+                        type: object
+                        properties:
+                          url:
+                            description: is the url to the analysis-cloud-connector
+                            type: string
+                            format: url
+                          user-mgmt:
+                            description: is the url to the user-mgmt on the analysis-cloud
+                            type: string
+                            format: url
+                          interval:
+                            type: string
+                            format: duration
+                            description: defines how long message should be collected before they transmitted to the endpoint
+                          container:
+                            description: defines the connector to the cloud system
+                            $ref: "#/components/schemas/container"
+                    required:
+                      - url
+                      - user-mgmt
+                      - interval
+                      - container
+                  required:
+                    - system
+                    - enable
+                    - pipelines
+            blockchain:
+              type: object
+              description: contains the blockchain specifics for this contract
+            machineConnection:
+              type: object
+              description: placeholder to define the connection to the machine
+            metadata:
+              type: object
+              description: placeholder to add metadata of this message
+          required:
+          - machine
+          - sensors
+        signature:
+          type: object
+          description: base64 encoded cryptographic signature
+          properties:
+            meta:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date-time
+                  description: is the date, when this message is signed
+                algorith:
+                  type: string
+                  description: is the algorithm, which is used to create the signature
+            signature:
+              type: string
+              description: contains the cryptogrpahi signature
     multiple_time_series-result:
       type: array
       description: defines multiple time series as result
@@ -113,7 +336,7 @@ components:
       required:
         - columns
         - data
-    analyse-text:
+    analysis-text:
       type: object
       required:
         - total
@@ -160,110 +383,115 @@ components:
                     - result
     analysis:
       type: object
-      required:
-        - result
-        - from
-        - date
-        - type
-        - calculated
       properties:
-        from:
-          type: string
-          description: defines who has created the result
-        date:
-          type: integer
-          description: defines when the result is created
-        type:
-          type: string
-          enum:
-            - time_series
-            - multiple_time_series
-            - text
-          description: defines the type of this message; the result of a ml computing unit can be a time series, multiple time series or a string (text)
-        calculated:
+        body:
           type: object
-          description: defines on which event the calculation has been begun
+          required:
+            - from
+            - timestamp
+            - model
+            - type
+            - calculated
+            - results
           properties:
-            message:
-              type: integer
-              description: is the message id of the received message, which started the computing process
-            received:
-              type: integer
-              description: is the timestamp when the message is received by the analysis unit
-        result:
-          description: contains the result, the used type compares to the type object in this message
-          oneOf:
-            - $ref: '#/components/schemas/analyse-text'
-            - $ref: '#/components/schemas/time_series-result'
-            - $ref: '#/components/schemas/multiple_time_series-result'
+            from:
+              type: string
+            timestamp:
+              type: string
+              format: date-time
+            model:
+              $ref: "#/components/schemas/model"
+            type:
+              type: string
+            calculated:
+              type: object
+              required:
+                - message
+                - received
+              properties:
+                message:
+                  type: object
+                  required:
+                    - machine
+                    - sensor
+                  properties:
+                    machine: 
+                      type: string
+                    sensor:
+                      type: string
+                received:
+                  type: string
+                  format: date-time
+            results:
+              type: object
+              oneOf:
+                - $ref: "#/components/schemas/analysis-text"
+                - $ref: "#/components/schemas/time_series-result"
+                - $ref: "#/components/schemas/multiple_time_series-result"
+        signature:
+          type: string
+      required:
+        - body
     data:
       type: object
       properties:
         signature:
           type: string
           description: is the signature above this message
-        machine:
-          type: string
-          description: is the machine id on which this message is created
-        sensor:
-          type: string
-          description: is the sensor id, which has measured this data point
-        message_id:
-          type: integer
-          description: is the message id of this message
-        from:
-          type: string
-          description: defines which uploads this data block
-        columns:
-          type: array
-          minItems: 1
-          items:
-            properties:
-              name:
-                type: string
-                description: defines the name of this column
-              type:
-                type: string
-                description: defines the data type this property
-              allowed_values:
-                type: string
-                description: defines allowed value for this column
-            required:
-              - name
-              - type
-        data:
-          type: array
-          minItems: 1
-          description: are the data points
-          items:
-            type: array
-            items:
-              type: string
-        meta:
-          type: array
-          minItems: 0
-          items:
-            properties:
-              name:
-                type: string
-                description: is the name of the metadata
-              type:
-                type: string
-                description: set the name type of the metadate
-              description:
-                type: string
-                description: is the description of this metadata
-              value:
-                type: string
-                description: is the value of this metadata
-            required:
-              - name
-              - type
-              - value
+        body:
+          type: object
+          properties:
+           machineID:
+             type: string
+             description: is the machine id on which this message is created
+           timestamp:
+            type: string
+            format: date-time
+           columns:
+             type: array
+             minItems: 1
+             items:
+               properties:
+                 name:
+                   type: string
+                   description: defines the name of this column
+                 type:
+                   type: string
+                   description: defines the data type this property
+               required:
+                 - name
+                 - type
+           data:
+             type: array
+             minItems: 1
+             description: are the data points
+             items:
+               type: array
+               items:
+                 type: string
+           meta:
+             type: array
+             minItems: 0
+             items:
+               properties:
+                 name:
+                   type: string
+                   description: is the name of the metadata
+                 type:
+                   type: string
+                   description: set the name type of the metadate
+                 description:
+                   type: string
+                   description: is the description of this metadata
+                 value:
+                   type: string
+                   description: is the value of this metadata
+               required:
+                 - name
+                 - type
+                 - value
       required:
-        - from
-        - columns
-        - data
+        - body
 paths:
   /analysis/{contractID}/{machineID}/{sensorID}:
     summary: central analysis endpoint
@@ -469,17 +697,6 @@ paths:
   /auth:
     post:
       summary: authentication, to use all other endpoints
-      requestBody:
-        content:
-          application/json:
-            schema:
-              properties:
-                user:
-                  type: string
-                  description: is the user name
-                password:
-                  type: string
-                  description: is the password to this user
       responses:
         200:
           description: OK
@@ -488,10 +705,15 @@ paths:
               schema:
                 required:
                   - token
+                  - valid
                 properties:
                   token:
                     type: string
                     description: is the authentication token
+                  valid:
+                    type: string
+                    format: date-time
+                    description: is the timestamp how long the token will be valid
         400:
           description: failure
           content:
@@ -513,7 +735,6 @@ paths:
                   error:
                     type: string
                     description: more informations about this error
-          
     delete:
       summary: log out / delete token - user combination
       parameters:
@@ -528,106 +749,6 @@ paths:
           description: OK
         500:
           description: error
-          content:
-            application/json:
-              schema:
-                required:
-                  - error
-                properties:
-                  error:
-                    type: string
-                    description: more informations about this error
-    get:
-      summary: test authentication
-      parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-          required: true
-          description: is the token which are created by the authentication backend
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                required:
-                  - user
-                properties:
-                  user:
-                    type: string
-                    description: is the used user
-        204:
-          description: OK - you are not logged in
-        500:
-          description: error
-          content:
-            application/json:
-              schema:
-                properties:
-                  error:
-                    type: string
-                    description: give more informations about the error
-  /model/{contractId}:
-    parameters:
-      - in: header
-        name: token
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - in: path
-        name: contractId
-        required: true
-        schema:
-          type: string
-        description: is the contract id
-    get:
-      summary: returns a list of models, which should be updated
-      responses:
-        200:
-          description: OK - new version is available
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/model'
-        500:
-          description: error
-        401:
-          description: not authorized
-        204:
-          description: OK - no new version is available
-    put:
-      summary: set the version of a deployed model on the edge
-      requestBody:
-        content:
-          application/json:
-            schema:
-              required:
-                - state
-                - models
-              properties:
-                state:
-                  type: string
-                  enum:
-                    - deployed
-                    - error
-                    - ignored
-                models:
-                  type: array
-                  minItems: 1
-                  items:
-                    $ref: '#/components/schemas/model'
-      responses:
-        201:
-          description: OK
-        401:
-          description: not authorized
-        500:
-          description: internal server error
           content:
             application/json:
               schema:
