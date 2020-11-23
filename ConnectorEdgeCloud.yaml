@@ -11,6 +11,8 @@ info:
     url: https://www.apache.org/licenses/LICENSE-2.0.html
 servers:
   - url: 'connector.kosmos.idcp.inovex.io'
+schema:
+  - https
 components:
   schemas:
     model:
