@@ -1,7 +1,7 @@
 .PHONY: build clean test lint
 
 build:
-	go build -o connector ./
+	go build -o connector src/main.go
 
 clean:
 	${RM} connector
@@ -11,7 +11,6 @@ test:
 
 lint:
 	golangci-lint run ./...
-	go vet ./...
 
 coverage:
 	go test -covermode=count -coverprofile cov --tags unit ./...
@@ -21,4 +20,5 @@ race:
 	go test -short -race ./...
 
 docker:
-	docker build -t edge-cloud-connector -f Dockerfile .
+	docker build -t edge-cloud-connector -f app.dockerfile .
+	docker build -t edge-cloud-connector-swagger -f swagger.dockerfile .

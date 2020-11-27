@@ -5,7 +5,10 @@ webserver:
 database:
   address: 127.0.0.1
   port: 5432
-  database: connector
+  database: demonstrator
 mqtt:
   address: 127.0.0.1
   port: 1883
+userMgmt:
+  userMgmt: "https://user.kosmos.idcp.inovex.io/auth/realms/jans-test-1"
+  serverAddress: "http://127.0.0.1:8080"

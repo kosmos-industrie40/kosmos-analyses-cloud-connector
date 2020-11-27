@@ -1,0 +1,3 @@
+[submodule "kosmos-json-specifications"]
+	path = kosmos-json-specifications
+	url = ../../documentation/specifications/kosmos-json-specifications.git

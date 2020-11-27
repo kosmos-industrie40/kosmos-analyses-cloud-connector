@@ -35,7 +35,11 @@ with a predefined token. This will be inserted to the database and you can use t
 To insert these data point you can use this command:
 ```bash
 psql -h <host> -d <database> -U <database user> -c \
-"INSERT INTO token (name, token) VALUES ('test-user', 'ca397616-e351-47c3-ae7b-0785e6278357');"
+"INSERT INTO token(token, valid, write_contract) VALUES ('ca397616-e351-47c3-ae7b-0785e6278357', NOW() + '5h', 't');"
+psql -h <host> -d <database> -U <database user> -c \
+"INSERT INTO organisations(id, name) VALUES (0, 'test');"
+psql -h <host> -d <database> -U <database user> -c \
+"INSERT INTO token_permission(token, organisation)) VALUES ('ca397616-e351-47c3-ae7b-0785e6278357', 0);"
 ```
 
 In this test we are assuming that the program is running on the `localhost` and using the port `8080`.
@@ -46,10 +50,10 @@ is in the test directory.
 ## Authentication
 This section contains the test case to test against the authentication endpoint. 
 
+
 ### Log in
-```bash
-curl -i -X POST localhost:8080/auth --data '{"user":"test", "password":"abc"}'
-```
+To test this endpoint, you have to set up, or use a oidc auth server. This can be a self hosted instanc of keycloak, google auth or github. The best way to test this, using a browser and
+call the endpoint with the 'auth' path.
 
 ### Test Authenticated
 ```bash
@@ -68,7 +72,7 @@ In this section the contract endpoint will be tested
 
 ### Upload Contract
 ```
-curl -X POST --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' -i localhost:8080/contract/ --data @testContract.json
+curl -X POST --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' -i localhost:8080/contract/ --data @kosmos-json-specifications/mqtt_payloads/contract-creation/valid_example.json
 ```
 
 ### List of all Contracts
@@ -108,13 +112,13 @@ endpoint is divided into three parts.
 ### Get Specific Result
 To receive a specific analyse result you can use the following curl command. 
 ```bash
-curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/analyses/77/8
+curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/analysis/77/8
 ```
 
 ### Get Result Set
 To receive all results from a specific contract:
 ```bash
-curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/analyses/77
+curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/analysis/77
 ```
 
 
@@ -132,34 +136,4 @@ The metric endpoint provides prometheus metrics which are created from the prome
 command:
 ```bash
 curl -i localhost:8080/metrics
-```
-
-## Model
-The model endpoint provides the functionality to the model endpoint. On this you can query for model updates and update
-the state of the model.
-
-### Get Model
-This endpoint uses a get request to query the required models.
-```bash
-curl -i --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/77
-```
-The last request should be empty. Before we can query data; we have to insert those data into the database. The next
-code block contains the data which should be inserted.
-
-```bash
-psql -d <database> -c "INSERT INTO machine VALUES ('contract')"
-psql -d <database> -c "INSERT INTO model (id, tag, url) VALUES (0, 'tag', 'url')"
-psql -d <database> -c "INSERT INTO model_update (model, contract) VALUES (0, '77')"
-```
-
-```bash
-curl --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/77
-```
-
-### Update model
-In the last section we want to set a state to the specific contract. Before you can execute the following command, you should
-inserted the data into the database. The command to insert those can be found in the previous section.
-
-```bash
-curl -X PUT --header 'token:ca397616-e351-47c3-ae7b-0785e6278357' localhost:8080/model/contract-test33 --data '{"state":"test", "models":[{"tag":"tag", "url":"url"}]}'
 ```
