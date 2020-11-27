@@ -4,12 +4,20 @@ connector between edge and analyses platform. This program provides different
 endpoints, where you can execute actions on the analyse result, kosmos contracts,
 sensor data, machine learning models.
 
+To download the full project please use `git clone --recursvice`. To execute all test cases, we are using a git submodule.
+
 ## Content
 
-- [Endpoint Definition](#endpoint-definition)
-- [Dependencies](#dependencies)
-- [Build](#build)
-- [Configuration](#configuration)
+- [Connector Analyses Cloud - Edge](#connector-analyses-cloud---edge)
+	- [Content](#content)
+	- [Endpoint Definition](#endpoint-definition)
+	- [Dependencies](#dependencies)
+	- [Build](#build)
+	- [Test](#test)
+	- [Configuration](#configuration)
+		- [CLI-Flags](#cli-flags)
+		- [Password](#password)
+		- [Configuration](#configuration-1)
 
 ## Endpoint Definition
 
