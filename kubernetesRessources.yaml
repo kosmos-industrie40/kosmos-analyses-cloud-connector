@@ -123,7 +123,9 @@ metadata:
     app: connector-cloud-edge
 spec:
   ports:
-  - port: 8080
+  - name: http
+    port: 80
+    targetPort: 8080
     protocol: TCP
   selector:
     type: connector
