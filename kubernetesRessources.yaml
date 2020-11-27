@@ -67,6 +67,36 @@ spec:
             harbor.kosmos.idcp.inovex.io/analyse-platform-kosmos/edge-cloud-connector:v0.0.3
 
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: connector-cloud-edge-swagger
+  labels:
+    app: connector-cloud-edge
+    type: connector
+spec:
+  selector:
+    matchLabels:
+      app: connector-cloud-edge
+      type: connector
+  template:
+    metadata:
+      labels:
+        app: connector-cloud-edge
+        type: connector
+    spec:
+      imagePullSecrets:
+        - name: regcrd
+      containers:
+        - name: executor
+          ports:
+          - containerPort: 8080
+            hostPort: 8080
+            protocol: TCP
+          image: |
+            harbor.kosmos.idcp.inovex.io/analyse-platform-kosmos/edge-cloud-connector-swagger:v0.0.1
+
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -77,6 +107,25 @@ metadata:
 spec:
   ports:
   - port: 8080
+    protocol: TCP
+  selector:
+    type: connector
+    app: connector-cloud-edge
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: connector-cloud-edge-swagger
+  labels:
+    type: connector
+    app: connector-cloud-edge
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
     protocol: TCP
   selector:
     type: connector
