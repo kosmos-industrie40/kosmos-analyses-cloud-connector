@@ -20,4 +20,5 @@ race:
 	go test -short -race ./...
 
 docker:
-	docker build -t edge-cloud-connector -f Dockerfile .
+	docker build -t edge-cloud-connector -f app.dockerfile .
+	docker build -t edge-cloud-connector-swagger -f swagger.dockerfile .
