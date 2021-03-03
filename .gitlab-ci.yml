@@ -78,5 +78,5 @@ container_build:
                 /kaniko/executor \
                   --context $CI_PROJECT_DIR \
                   --dockerfile $CI_PROJECT_DIR/swagger.dockerfile \
-                  --destination $CI_REGISTRY/$CI_REGISTRY_IMAGE:$version \
+                  --destination $CI_REGISTRY/$CI_REGISTRY_IMAGE/swagger:$version \
                   --cache=true # Remove to disable caching
