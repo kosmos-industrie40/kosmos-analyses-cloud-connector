@@ -1,0 +1,69 @@
+{
+  "modelsCloud": [
+    {
+      "tag": "1.1.9",
+      "url": "test"
+    },
+    {
+      "tag": "abc",
+      "url": "de"
+    }
+  ],
+  "contractId": "test-contract1",
+  "modelsEdge": [
+    {
+      "tag": "asdklfj",
+      "url": "aua"
+    },
+    {
+      "tag": "tag",
+      "url": "url"
+    }
+  ],
+  "machines": [
+    {
+      "machineId": "mach",
+      "sensors": [
+        {
+          "model": [
+		  {
+            	"tag": "4",
+            	"url": "t"
+          	}
+	],
+          "sensorId": "mod"
+        },
+        {
+          "model": [{
+            "tag": "a",
+            "url": "r"
+          }],
+          "sensorId": "id"
+        }
+      ]
+    },
+    {
+      "machineId": "mach1",
+      "sensors": [
+        {
+          "model": [
+		  {
+            		"tag": "a",
+            		"url": "r"
+		  }
+          ],
+          "sensorId": "tId"
+        },
+        {
+          "model": [
+		  {
+            		"tag": "tag",
+            		"url": "url"
+		}
+          ],
+          "sensorId": "I"
+        }
+      ]
+    }
+  ]
+}
