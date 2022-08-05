@@ -1,0 +1,4 @@
+[submodule "kosmos-json-specifications"]
+	path = kosmos-json-specifications
+	url = https://github.com/kosmos-industrie40/kosmos-json-specifications.git
+	branch = release

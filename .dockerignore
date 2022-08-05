@@ -1,0 +1,6 @@
+*.yaml
+*.sql
+*.md
+test/*
+*_test.go
+!ConnectorEdgeCloud.yaml

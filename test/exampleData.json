@@ -1,0 +1,37 @@
+[
+	{
+	  "$schema": "file:data-formal.json",
+	  "body": {
+	    "timestamp": "2020-08-15T15:33:44.897Z",
+	    "machineID": "84bab968-e6b7-11ea-b10c-54e1ad207114",
+	    "sensor": "crash",
+	    "columns": [
+	      {
+	        "name": "value",
+	        "type": "number",
+	        "meta": {
+	          "unit": "",
+	          "description": "metric"
+	        }
+	      },
+	      {
+	        "name": "quality",
+	        "type": "number",
+	        "meta": {
+	          "description": "quality of the metric",
+	          "unit": ""
+	        }
+	      }
+	    ],
+	    "data": [
+	      [
+	        "15"
+	      ],
+	      [
+	        "3"
+	      ]
+	    ]
+	  },
+	  "signature": ""
+	}
+]

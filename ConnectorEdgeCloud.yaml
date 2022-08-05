@@ -1,0 +1,903 @@
+openapi: 3.0.1
+info:
+  title: KOSMoS Connector Edge Cloud
+  description: This file defines the http endpoint which provides a connector to the analysis cloud. The connector will be used by the edge to push messages to the cloud and receive results of the unit.
+  version: 1.0.0
+  contact:
+    name: KOSMoS-Industrie
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: "connector.kosmos.idcp.inovex.io"
+components:
+  schemas:
+    model:
+      type: object
+      required:
+        - url
+        - tag
+      properties:
+        url:
+          type: string
+          description: is the url, where the docker container can be found
+        tag:
+          type: string
+          description: is the initial or actual tag of the docker container
+    container:
+      type: object
+      properties:
+        url:
+          type: string
+          description: is the url of the container (ref. docker container)
+        tag:
+          type: string
+          description: is the tag of the container (ref. docker container)
+        arguments:
+          type: array
+          items:
+            type: string
+          description: defines arguments of this container
+        environment:
+          type: array
+          items:
+            type: string
+          description: defines the environment varibales of this container
+    pipelines:
+      type: array
+      description: defines the analysis pipeline
+      items:
+        type: object
+        properties:
+          ml-trigger:
+            type: object
+            description: defines if an ml tool will be triggered
+            properties:
+              type:
+                type: string
+                enum:
+                  - time
+                  - event
+              definition: { type: object }
+            required:
+              - definition
+              - type
+          pipeline:
+            type: array
+            items:
+              type: object
+              required:
+                - container
+                - persistOutput
+                - from
+                - to
+              properties:
+                container:
+                  $ref: "#/components/schemas/container"
+                persistOutput:
+                  type: boolean
+                  description: defines if the outptut should be persist or not
+                from:
+                  $ref: "#/components/schemas/model"
+                to:
+                  $ref: "#/components/schemas/container"
+          sensors:
+            type: array
+            items:
+              type: string
+            description: defines the sensor on which the analyse should be done
+        required:
+          - pipeline
+          - sensors
+          - ml-trigger
+    contract:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          type: object
+          properties:
+            contract:
+              type: object
+              description: contains contract meta data
+              required:
+                - valid
+                - creationTime
+                - permissions
+                - id
+                - partners
+              properties:
+                valid:
+                  type: object
+                  properties:
+                    start:
+                      type: string
+                      format: date-time
+                      description: defines the start date of the contract
+                    end:
+                      type: string
+                      format: date-time
+                      description: defines the end date of the contract
+                  required:
+                    - start
+                    - end
+                parentContract:
+                  type: string
+                  description: can be emtpy or the contract id of the parent contract
+                creationTime:
+                  type: string
+                  format: date-time
+                  description: defines when the contract is created
+                partners:
+                  type: array
+                  items:
+                    type: string
+                  description: defines the organisations, which are part of of the contract
+                permissions:
+                  description: defines which organisations (groups in oidc) which perssions on this contract have
+                  type: object
+                  properties:
+                    read:
+                      type: array
+                      items:
+                        type: string
+                      description: defines the read permission
+                    write:
+                      type: array
+                      items:
+                        type: string
+                      description: defines the write persmission
+                id:
+                  type: string
+                  description: is the id of the contract
+                version:
+                  type: string
+                  description: is the version of the contract
+            requiredTechnicalContainers:
+              type: array
+              items:
+                type: object
+                properties:
+                  system:
+                    type: string
+                    description: defines the system on which the containers are required
+                  containers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/container"
+                    description: required technical containers
+            machine:
+              type: string
+              description: is the unique id of the machine
+            kosmosLocalSystems:
+              type: array
+              items:
+                type: string
+              description: defines all KOSMoS-Local system, which uses this contract
+            sensors:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: name of the sensor
+                  storageDuration:
+                    type: array
+                    description: defines the torage duration of this sensor
+                    items:
+                      type: object
+                      properties:
+                        systemName:
+                          type: string
+                          description: is the name of the system, the value can be either 'analyse' or a system, wich is listed in kosmosLocal
+                        duration:
+                          type: string
+                          format: duration
+                      required:
+                        - systemName
+                        - duration
+                  meta:
+                    type: object
+                    description: placeholder to include meta data of this sensor
+              required:
+                - name
+                - storageDuration
+                - meta
+            checkSignatures:
+              type: boolean
+              description: defines if programms has to check the message signature or not (end to end validation)
+            analysis:
+              type: object
+              properties:
+                enable:
+                  type: boolean
+                  description: defines if analysis is enabled or not
+                systems:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                        description: identify the system. The value can be either cloud or a name which are defined in the property kosmosLocalSystems
+                      enable:
+                        type: boolean
+                        description: defines if this analysis part is enabled or not
+                      pipelines:
+                        $ref: "#/components/schemas/pipelines"
+                        description: defines the pipeline for this specific system
+                      connection:
+                        description: defines the connection to the analysis cloud
+                        type: object
+                        properties:
+                          url:
+                            description: is the url to the analysis-cloud-connector
+                            type: string
+                            format: url
+                          user-mgmt:
+                            description: is the url to the user-mgmt on the analysis-cloud
+                            type: string
+                            format: url
+                          interval:
+                            type: string
+                            format: duration
+                            description: defines how long message should be collected before they transmitted to the endpoint
+                          container:
+                            description: defines the connector to the cloud system
+                            $ref: "#/components/schemas/container"
+                    required:
+                      - url
+                      - user-mgmt
+                      - interval
+                      - container
+                  required:
+                    - system
+                    - enable
+                    - pipelines
+            blockchain:
+              type: object
+              description: contains the blockchain specifics for this contract
+            machineConnection:
+              type: object
+              description: placeholder to define the connection to the machine
+            metadata:
+              type: object
+              description: placeholder to add metadata of this message
+          required:
+            - machine
+            - sensors
+        signature:
+          type: object
+          description: base64 encoded cryptographic signature
+          properties:
+            meta:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date-time
+                  description: is the date, when this message is signed
+                algorith:
+                  type: string
+                  description: is the algorithm, which is used to create the signature
+            signature:
+              type: string
+              description: contains the cryptogrpahi signature
+    multiple_time_series-result:
+      type: array
+      description: defines multiple time series as result
+      minItems: 1
+      items:
+        $ref: "#/components/schemas/time_series-result"
+    time_series-result:
+      type: object
+      description: definition of time series data result
+      properties:
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: name of this column
+              type:
+                type: string
+                enum: [number, string]
+                description: defines the data type on this column (allowed values are number and string)
+              allowed_values:
+                type: array
+                items:
+                  type: string
+                description: defines the values which are allowed in this column
+            required:
+              - name
+              - type
+          minItems: 1
+        data:
+          type: array
+          description: the transmitted data
+          minItems: 0
+          items:
+            type: array
+            minItems: 0
+            items:
+              type: string
+        meta:
+          type: array
+          items:
+            type: string
+          description: the possibility to add meta data like units or something else
+      required:
+        - columns
+        - data
+    analysis-text:
+      type: object
+      required:
+        - total
+      properties:
+        total:
+          type: string
+          description: the end result of the computing unit
+        predict:
+          type: number
+          description: probability of the end result
+        parts:
+          type: array
+          description: the parts on which the result are made
+          items:
+            required:
+              - machine
+              - result
+            properties:
+              machine:
+                type: string
+                description: the id of the machine on which this calculation is made
+              result:
+                type: string
+                description: the result of this specific machine
+              predict:
+                type: number
+                description: the percentage on which the result is made
+              sensors:
+                type: array
+                description: result made by the sensor
+                items:
+                  properties:
+                    sensor:
+                      type: string
+                      description: the id of the sensor
+                    result:
+                      type: string
+                      description: the result of the computing unit for this sensor
+                    predict:
+                      type: number
+                      description: the percentage on which the result is made
+                  required:
+                    - sensor
+                    - result
+    analysis:
+      type: object
+      properties:
+        body:
+          type: object
+          required:
+            - from
+            - timestamp
+            - model
+            - type
+            - calculated
+            - results
+          properties:
+            from:
+              type: string
+            timestamp:
+              type: string
+              format: date-time
+            model:
+              $ref: "#/components/schemas/model"
+            type:
+              type: string
+            calculated:
+              type: object
+              required:
+                - message
+                - received
+              properties:
+                message:
+                  type: object
+                  required:
+                    - machine
+                    - sensor
+                  properties:
+                    machine:
+                      type: string
+                    sensor:
+                      type: string
+                received:
+                  type: string
+                  format: date-time
+            results:
+              type: object
+              oneOf:
+                - $ref: "#/components/schemas/analysis-text"
+                - $ref: "#/components/schemas/time_series-result"
+                - $ref: "#/components/schemas/multiple_time_series-result"
+        signature:
+          type: string
+      required:
+        - body
+    data:
+      type: object
+      properties:
+        signature:
+          type: string
+          description: is the signature above this message
+        body:
+          type: object
+          properties:
+            machineID:
+              type: string
+              description: is the machine id on which this message is created
+            timestamp:
+              type: string
+              format: date-time
+            columns:
+              type: array
+              minItems: 1
+              items:
+                properties:
+                  name:
+                    type: string
+                    description: defines the name of this column
+                  type:
+                    type: string
+                    description: defines the data type this property
+                required:
+                  - name
+                  - type
+            data:
+              type: array
+              minItems: 1
+              description: are the data points
+              items:
+                type: array
+                items:
+                  type: string
+            meta:
+              type: array
+              minItems: 0
+              items:
+                properties:
+                  name:
+                    type: string
+                    description: is the name of the metadata
+                  type:
+                    type: string
+                    description: set the name type of the metadate
+                  description:
+                    type: string
+                    description: is the description of this metadata
+                  value:
+                    type: string
+                    description: is the value of this metadata
+                required:
+                  - name
+                  - type
+                  - value
+      required:
+        - body
+paths:
+  /analysis/{contractID}/{machineID}/{sensorID}:
+    summary: central analysis endpoint
+    post:
+      parameters:
+        - in: path
+          name: machineID
+          schema:
+            type: string
+          required: true
+          description: is the machine id, on which a new result should be inserted
+        - in: path
+          name: sensorID
+          schema:
+            type: string
+          required: true
+          description: is the sensor id, on which a new result should be inserted
+        - in: path
+          name: contractID
+          schema:
+            type: string
+          required: true
+          description: is the contract id, on which a new result should be inserted
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        201:
+          description: OK - result created on the analysis cloud
+        401:
+          description: not authorized
+        500:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/analysis"
+  /analysis/{contractID}:
+    summary: central analysis endpoint
+    get:
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: contractID
+          schema:
+            type: string
+          required: true
+          description: is the contract id, on which a new result should be queried
+        - in: query
+          name: machine
+          schema:
+            type: string
+          description: including only specific machines in a list of the result ids
+        - in: query
+          name: sensor
+          schema:
+            type: string
+          description: including only specific sensor in the list of the result ids
+        - in: query
+          name: string
+          schema:
+            type: integer
+          description: include only result after this specific time (using (rfc 3339)[https://tools.ietf.org/html/rfc3339.html#section-5.8])
+          example: 2020-09-18T14:46:22+00:00
+        - in: query
+          name: end
+          schema:
+            type: string
+          description: include only result before this specific time (using (rfc 3339)[https://tools.ietf.org/html/rfc3339.html#section-5.8])
+          example: 2020-09-18T14:46:22+00:00
+      responses:
+        401:
+          description: not authorized
+        500:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    resultId:
+                      type: integer
+                      description: is the unique id of the result
+                    date:
+                      type: integer
+                      description: defines when the result was made
+                    machine:
+                      type: string
+                      description: is the id of the machine on which the result was made
+  /analysis/{contractID}/{resultID}:
+    get:
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: contractID
+          schema:
+            type: string
+          required: true
+          description: is the contract id, on which a new result should be queried
+        - in: path
+          name: resultID
+          schema:
+            type: integer
+          description: is the result id, which identify the result
+          required: true
+      summary: Returns result of the which should be published on the edge
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/analysis"
+        "204":
+          description: OK - no results are made
+        "404":
+          description: this contract could not be found or you don't have access to this contract id
+        "401":
+          description: not authorized
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+  /machine-data:
+    post:
+      summary: Upload sensor data to analysis cloud
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: OK
+        "401":
+          description: not authorized
+        "400":
+          description: Bad Request
+        "500":
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/data"
+  /auth:
+    post:
+      summary: authentication, to use all other endpoints
+      responses:
+        302:
+          description: redirect to authentication server
+        500:
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+    delete:
+      summary: log out / delete token - user combination
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+          required: true
+          description: is the token which are created by the authentication backend
+      responses:
+        201:
+          description: OK
+        500:
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+  /auth/callback:
+    get:
+      summary: create the token and return this token to the client
+      parameters:
+        - in: path
+          description: code from the oidc auth server
+          name: code
+          required: true
+          schema:
+            type: string
+        - in: path
+          description: state variable of the server to verify the redirect
+          name: state
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                required:
+                  - token
+                  - valid
+                properties:
+                  token:
+                    type: string
+                    description: is the authentication token
+                  valid:
+                    type: string
+                    format: date-time
+                    description: is the timestamp how long the token will be valid
+  /contract:
+    parameters:
+      - in: header
+        name: token
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: get a list of all deployed contracts
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 0
+                items:
+                  type: string
+                  description: is the id of the contracts which are deployed and active in the analysis cloud
+        500:
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+        401:
+          description: not authorized
+    post:
+      summary: add a new contract
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              minItems: 1
+              items:
+                $ref: "#/components/schemas/contract"
+      responses:
+        201:
+          description: OK
+        500:
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+        401:
+          description: not authorized
+  /contract/{contractID}:
+    parameters:
+      - in: header
+        name: token
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        required: true
+        name: contractID
+        schema:
+          type: string
+        description: is the contract id
+    get:
+      summary: get informations about a single contract
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contract"
+        500:
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+        401:
+          description: not authorized
+    delete:
+      summary: delete a single contract
+      responses:
+        201:
+          description: OK
+        500:
+          description: error
+          content:
+            application/json:
+              schema:
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+                    description: more informations about this error
+        401:
+          description: not authorized
+  /health:
+    get:
+      summary: check if this endpoint is OK or not
+      responses:
+        204:
+          description: OK
+        500:
+          description: error
+  /ready:
+    get:
+      summary: test if the endpoint is ready or not
+      responses:
+        201:
+          description: OK
+        500:
+          description: not ready
+
+  /metrics:
+    get:
+      summary: endpoint to provide prometheus metrics
+      responses:
+        200:
+          description: prometheus metrics

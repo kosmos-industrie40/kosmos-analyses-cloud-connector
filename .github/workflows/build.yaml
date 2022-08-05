@@ -1,0 +1,58 @@
+name: Build
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.14"
+          check-latest: true
+
+      - name: Run build
+        run: |
+          make build
+
+      - name: Save built binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: connector
+          path: connector
+          retention-days: 1
+
+  container_build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Build an App Image
+        run: |
+          docker run \
+            -v $(pwd):/$GITHUB_WORKSPACE \
+            gcr.io/kaniko-project/executor:latest \
+              --no-push \
+              --context $GITHUB_WORKSPACE \
+              --dockerfile $GITHUB_WORKSPACE/app.dockerfile \
+              --destination $GITHUB_WORKSPACE/edge-cloud-connector-app:latest
+      - name: Build Swagger Image
+        run: |
+          docker run \
+            -v $(pwd):/$GITHUB_WORKSPACE \
+            gcr.io/kaniko-project/executor:latest \
+              --no-push \
+              --context $GITHUB_WORKSPACE \
+              --dockerfile $GITHUB_WORKSPACE/swagger.dockerfile \
+              --destination $GITHUB_WORKSPACE/edge-cloud-connector-swagger:latest
